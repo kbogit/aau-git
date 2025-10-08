@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Foldedoer_4_517_Og_4_521_2Pcs" Id="{73463df5-40ea-4f48-950f-d8f7bcb26540}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Foldedoer_4_517_Og_4_521_2Pcs
+(*
+Rummene er delt af to foldedøre med dørkontakt i rum 4.513 og 4.517. Når en eller flere dørkontakter aktiveres behandles de omkringliggende rum som ét rum:
+	- Sensorinput sammensættes, således reguleringer har samme PV.
+	- Knapfunktion sammensættes, således alle knapper kan benyttes for hele rummet.
+	
+Konfiguration af rum:
+Rum [1, 2, 3] = [*rum 4.513*, *rum 4.517*, *rum 4.521*]
+Dørkontakt[1,2] = [*dørkontakt_4_513*, dørkontakt_4_517]
+*)
+VAR
+	bFoldingDoor1Open		AT %I*		: BOOL;
+	bFoldingDoor2Open		AT %I*		: BOOL;
+	arrFoldingDoorOpen 							: ARRAY[1..DALI_Param.byMaxNumOfFoldingDoors] OF BOOL;
+	
+	arrRoomName									: ARRAY[1..nMaxNumOfRooms] OF STRING(12) := ['Rum_4_513', 'Rum_4_517', 'Rum_4_521'];
+	arrOnZone1_SepRoom						: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+	arrTopButtonZone1_SepRoom			: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+	arrBottomButtonZone1_SepRoom		: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+	
+	arrstPirSensorData_SepRoom			: ARRAY[1..nMaxNumOfRooms] OF ST_DALI_Sensor;
+	arrstPirSensorData_ConnRoom			: ARRAY[1..nMaxNumOfRooms] OF ST_DALI_Sensor;
+	
+	arrTopButtonZone1_ConnRoom			: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+	arrBottomButtonZone1_ConnRoom	: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+	arrOverride_ConnRoom						: ARRAY[1..nMaxNumOfRooms] OF BOOL;
+
+	fbFoldedoer										: SH_Light.FB_FoldingDoorCtrl_2Pcs;
+END_VAR
+
+VAR CONSTANT
+	nMaxNumOfRooms				: BYTE := DALI_Param.byMaxNumOfFoldingDoors+1;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//Folding door buttons
+arrFoldingDoorOpen[1]					:= bFoldingDoor1Open;
+arrFoldingDoorOpen[2]					:= bFoldingDoor2Open;
+
+//Is light ON/OFF in seperate rooms
+arrOnZone1_SepRoom[1]				:= P_Rum_4_513.arrfbLysGruppe[1].fbLightCtrl.bOnZone1;
+arrOnZone1_SepRoom[2]				:= P_Rum_4_517.arrfbLysGruppe[1].fbLightCtrl.bOnZone1;
+arrOnZone1_SepRoom[3]				:= P_Rum_4_521.arrfbLysGruppe[1].fbLightCtrl.bOnZone1;
+
+//Activations of EnOcean buttons in seperate Rooms
+arrTopButtonZone1_SepRoom[1]		:= GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang1_1.bT1_ON OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang1_2.bT2_OFF OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang2.bT1_ON;
+arrBottomButtonZone1_SepRoom[1]	:= GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang1_1.bT1_OFF OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang1_2.bT2_ON OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_513_Indgang2.bT1_OFF;
+														
+arrTopButtonZone1_SepRoom[2]		:= GVL_EnOcean.strEnOceanSwitch_Rum_4_517.bT1_ON;
+arrBottomButtonZone1_SepRoom[2]	:=	GVL_EnOcean.strEnOceanSwitch_Rum_4_517.bT1_OFF;
+
+arrTopButtonZone1_SepRoom[3]		:= GVL_EnOcean.strEnOceanSwitch_Rum_4_521_Indgang1.bT1_ON OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_521_Indgang2.bT2_OFF;
+arrBottomButtonZone1_SepRoom[3]	:= GVL_EnOcean.strEnOceanSwitch_Rum_4_521_Indgang1.bT1_OFF OR
+															GVL_EnOcean.strEnOceanSwitch_Rum_4_521_Indgang2.bT2_ON;
+
+fbFoldedoer(
+	arrFoldingDoorOpen					:= arrFoldingDoorOpen,
+	arrRoomName							:= arrRoomName,
+	arrOnZone1_SepRoom				:= arrOnZone1_SepRoom,
+	arrTopButtonZone1_SepRoom	:= arrTopButtonZone1_SepRoom,
+	arrBottomButtonZone1_SepRoom := arrBottomButtonZone1_SepRoom,
+	arrstPirSensorData_SepRoom	:= arrstPirSensorData_SepRoom,
+	arrstPirSensorData_ConnRoom := arrstPirSensorData_ConnRoom,
+	arrTopButtonZone1_ConnRoom		=> arrTopButtonZone1_ConnRoom,
+	arrBottomButtonZone1_ConnRoom	=> arrBottomButtonZone1_ConnRoom,
+	arrOverride_ConnRoom						=> arrOverride_ConnRoom);					]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

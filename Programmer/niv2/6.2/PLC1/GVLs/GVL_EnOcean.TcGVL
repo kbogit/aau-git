@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_EnOcean" Id="{bec68ff9-8f1d-4ce1-b8b9-84de691aacc9}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+//Atrium
+	strEnOceanSwitch_AtriumNiveau_PladeB				: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_AtriumNiveau_Service				: Tc2_EnOcean.STR_EnOceanSwitch;
+
+
+//Gange
+//	strEnOceanSwitch_Gang_3_364				: Tc2_EnOcean.STR_EnOceanSwitch;
+
+	//
+ 
+     strEnOceanSwitch_Rum_5_253                      	: Tc2_EnOcean.STR_EnOceanSwitch;
+     strEnOceanSwitch_Rum_5_254                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+     strEnOceanSwitch_Rum_5_255                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+     strEnOceanSwitch_Rum_5_256A                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+     strEnOceanSwitch_Rum_5_256B                        : Tc2_EnOcean.STR_EnOceanSwitch;
+	 strEnOceanSwitch_Rum_5_256B_Pendel                 : Tc2_EnOcean.STR_EnOceanSwitch;
+     strEnOceanSwitch_Rum_5_258                   		: Tc2_EnOcean.STR_EnOceanSwitch;	 
+     strEnOceanSwitch_Rum_5_259                   		: Tc2_EnOcean.STR_EnOceanSwitch;	 
+     strEnOceanSwitch_Rum_5_260A                   		: Tc2_EnOcean.STR_EnOceanSwitch;	 
+     strEnOceanSwitch_Rum_5_262                   		: Tc2_EnOcean.STR_EnOceanSwitch;	 
+     strEnOceanSwitch_Rum_5_263_Pendel                   		: Tc2_EnOcean.STR_EnOceanSwitch;	 
+     strEnOceanSwitch_Rum_5_263                  		: Tc2_EnOcean.STR_EnOceanSwitch;		 
+	 strEnOceanSwitch_Rum_5_265                  		: Tc2_EnOcean.STR_EnOceanSwitch;	
+	 
+	 
+
+	strEnOceanSwitch_Rum_6_202_1                   : Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_202_2                   : Tc2_EnOcean.STR_EnOceanSwitch;
+
+	
+	strEnOceanSwitch_Rum_6_205_Indgang1_Pendel          : Tc2_EnOcean.STR_EnOceanSwitch; 
+	strEnOceanSwitch_Rum_6_205_Indgang1          : Tc2_EnOcean.STR_EnOceanSwitch; 
+	strEnOceanSwitch_Rum_6_205_Indgang2            : Tc2_EnOcean.STR_EnOceanSwitch; 
+
+
+    strEnOceanSwitch_Rum_6_209                  		: Tc2_EnOcean.STR_EnOceanSwitch;
+    strEnOceanSwitch_Rum_6_211                  		: Tc2_EnOcean.STR_EnOceanSwitch;
+    strEnOceanSwitch_Rum_6_212                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+    strEnOceanSwitch_Rum_6_213                   		: Tc2_EnOcean.STR_EnOceanSwitch;	
+	strEnOceanSwitch_Rum_6_214A                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_214B_Pendel                       : Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_214B                       : Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_215                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_216A                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_216B                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_217                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_218A                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_219                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_220                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_221                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_6_222                   		: Tc2_EnOcean.STR_EnOceanSwitch;
+
+
+	//strEnOceanSwitch_Gang_5_149_indgang1				: Tc2_EnOcean.STR_EnOceanSwitch;
+
+	strEnOceanSwitch_Rum_6_214B_2: INT;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

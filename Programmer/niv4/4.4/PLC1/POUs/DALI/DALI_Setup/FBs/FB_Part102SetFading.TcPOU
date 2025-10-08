@@ -1,0 +1,412 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_Part102SetFading" Id="{f9d84372-720b-4040-9693-d61966e78a00}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part102SetFading
+VAR_INPUT
+	ipDALICommunication			:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy						:	BOOL;
+END_VAR
+VAR
+	{region "Visu"}
+	eAddressType				:	E_DALIAddressType;
+	nShortAddress				:	BYTE := 255;
+	nGroupAddress				:	BYTE := 255;
+
+	eExtendedFadeTime			:	E_DALIExtendedFadeTime;
+	eFadeRate					:	E_DALIFadeRate;
+	eFadeTime					:	E_DALIFadeTime;
+	bWriteFadeTime				:	BOOL;
+	bWriteFadeRate				:	BOOL;
+	bWriteExtendedFadeTime		:	BOOL;
+	bRead						:	BOOL;
+	bHideWaitSymbol				:	BOOL := TRUE;
+	{endregion}
+	nAddress					:	BYTE;
+	nStep						:	INT;
+	bNoFadeTime					:	BOOL;
+
+	eExtendedFadeTimeBase		:	E_DALIExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Unknown;
+	eExtendedFadeTimeMultiplier	:	E_DALIExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Unknown;
+
+	fb103StartQuiescentMode		:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode		:	FB_DALI103StopQuiescentMode(0);
+	fbSetExtendedFadeTime		:	FB_DALI102SetExtendedFadeTime(0);
+	fbSetFadeRate				:	FB_DALI102SetFadeRate(0);
+	fbSetFadeTime				:	FB_DALI102SetFadeTime(0);
+
+	fbQueryExtendedFadeTime		:	FB_DALI102QueryExtendedFadeTime(0);
+	fbQueryFadeTimeFadeRate		:	FB_DALI102QueryFadeTimeFadeRate(0);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bRead AND (nStep =0)) then
+	nStep := 5;
+	bRead := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+IF (bWriteFadeTime AND (nStep = 0)) THEN
+	nStep := 1000;
+	bWriteFadeTime := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWriteFadeRate AND (nStep = 0)) THEN
+	nStep := 1010;
+	bWriteFadeRate := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+	 
+IF (bWriteExtendedFadeTime AND (nStep = 0) AND (eFadeTime = E_DALIFadeTime.Disabled)) THEN
+	nStep := 1020;
+	bWriteExtendedFadeTime := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+
+{region "Manage Dialog Selection"}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+nAddress := SEL(eAddressType = E_DALIAddressType.Short, nGroupAddress, nShortAddress);
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bWriteFadeTime := FALSE;
+	bWriteFadeRate := FALSE;
+	bWriteExtendedFadeTime := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fbQueryExtendedFadeTime.ipDALICommunication := ipDALICommunication;
+	fbQueryFadeTimeFadeRate.ipDALICommunication := ipDALICommunication;
+
+	fbSetExtendedFadeTime.ipDALICommunication := ipDALICommunication;
+	fbSetFadeRate.ipDALICommunication := ipDALICommunication;
+	fbSetFadeTime.ipDALICommunication := ipDALICommunication;
+{endregion}
+5:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart:= FALSE);
+		nStep := 10;
+	END_IF
+{endregion}
+10:
+{region "Query Fade Time and Fade Rate"}
+	fbQueryFadeTimeFadeRate(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := eAddressType,
+							eCommandPriority := E_DALICommandPriority.Middle,
+							eFadeTime => eFadeTime,
+							eFadeRate => eFadeRate);
+	IF (NOT fbQueryFadeTimeFadeRate.bBusy) THEN
+		fbQueryFadeTimeFadeRate(bStart := FALSE);
+		IF (eFadeTime = 0) THEN 
+			bNoFadeTime := FALSE; // Check whether Fade Time is available
+			nStep := 20;
+		ELSE 	 
+			bNoFadeTime := TRUE;
+			nStep := 0;
+		END_IF
+	END_IF
+{endregion}
+20:
+{region "Query Extended Fade Time"}
+	fbQueryExtendedFadeTime(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := eAddressType,
+							eCommandPriority := E_DALICommandPriority.Middle,
+							eExtendedFadeTimeBase => eExtendedFadeTimeBase,
+							eExtendedFadeTimeMultiplier => eExtendedFadeTimeMultiplier);
+	IF (NOT fbQueryExtendedFadeTime.bBusy) THEN
+		fbQueryExtendedFadeTime(bStart := FALSE);
+		nStep := 25;
+		IF (eExtendedFadeTimeMultiplier = E_DALIExtendedFadeTimeMultiplier.Disabled) THEN
+			eExtendedFadeTime := E_DALIExtendedFadeTime.NoFade;
+		END_IF
+		IF (eExtendedFadeTimeMultiplier = E_DALIExtendedFadeTimeMultiplier.Multiplier100ms) THEN
+			CASE eExtendedFadeTimeBase OF
+				E_DALIExtendedFadeTimeBase.Base01:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundred;
+				E_DALIExtendedFadeTimeBase.Base02:	eExtendedFadeTime := E_DALIExtendedFadeTime.twohundred;
+				E_DALIExtendedFadeTimeBase.Base03:	eExtendedFadeTime := E_DALIExtendedFadeTime.threehundred;
+				E_DALIExtendedFadeTimeBase.Base04:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourhundred;
+				E_DALIExtendedFadeTimeBase.Base05:	eExtendedFadeTime := E_DALIExtendedFadeTime.fivehundred;
+				E_DALIExtendedFadeTimeBase.Base06:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixhundred;
+				E_DALIExtendedFadeTimeBase.Base07:	eExtendedFadeTime := E_DALIExtendedFadeTime.sevenhundred;
+				E_DALIExtendedFadeTimeBase.Base08:	eExtendedFadeTime := E_DALIExtendedFadeTime.eighthundred;
+				E_DALIExtendedFadeTimeBase.Base09:	eExtendedFadeTime := E_DALIExtendedFadeTime.ninehundred;
+				E_DALIExtendedFadeTimeBase.Base10:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousand;
+				E_DALIExtendedFadeTimeBase.Base11:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandonehundred;
+				E_DALIExtendedFadeTimeBase.Base12:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandtwohundred;
+				E_DALIExtendedFadeTimeBase.Base13:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandthreehundred;
+				E_DALIExtendedFadeTimeBase.Base14:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandfourhundred;
+				E_DALIExtendedFadeTimeBase.Base15:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandfivehundred;
+				E_DALIExtendedFadeTimeBase.Base16:	eExtendedFadeTime := E_DALIExtendedFadeTime.onethousandsixhundred;
+			END_CASE
+		END_IF
+	 	IF (eExtendedFadeTimeMultiplier = E_DALIExtendedFadeTimeMultiplier.Multiplier1s) THEN
+			CASE eExtendedFadeTimeBase OF
+				E_DALIExtendedFadeTimeBase.Base01:	eExtendedFadeTime := E_DALIExtendedFadeTime.onesecond;
+				E_DALIExtendedFadeTimeBase.Base02:	eExtendedFadeTime := E_DALIExtendedFadeTime.twoseconds;
+				E_DALIExtendedFadeTimeBase.Base03:	eExtendedFadeTime := E_DALIExtendedFadeTime.threeseconds;
+				E_DALIExtendedFadeTimeBase.Base04:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourseconds;
+				E_DALIExtendedFadeTimeBase.Base05:	eExtendedFadeTime := E_DALIExtendedFadeTime.fiveseconds;
+				E_DALIExtendedFadeTimeBase.Base06:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixseconds;
+				E_DALIExtendedFadeTimeBase.Base07:	eExtendedFadeTime := E_DALIExtendedFadeTime.sevenseconds;
+				E_DALIExtendedFadeTimeBase.Base08:	eExtendedFadeTime := E_DALIExtendedFadeTime.eightseconds;
+				E_DALIExtendedFadeTimeBase.Base09:	eExtendedFadeTime := E_DALIExtendedFadeTime.nineseconds;
+				E_DALIExtendedFadeTimeBase.Base10:	eExtendedFadeTime := E_DALIExtendedFadeTime.tenseconds;
+				E_DALIExtendedFadeTimeBase.Base11:	eExtendedFadeTime := E_DALIExtendedFadeTime.elevenseconds;
+				E_DALIExtendedFadeTimeBase.Base12:	eExtendedFadeTime := E_DALIExtendedFadeTime.twelveseconds;
+				E_DALIExtendedFadeTimeBase.Base13:	eExtendedFadeTime := E_DALIExtendedFadeTime.thirteenseconds;
+				E_DALIExtendedFadeTimeBase.Base14:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourteenseconds;
+				E_DALIExtendedFadeTimeBase.Base15:	eExtendedFadeTime := E_DALIExtendedFadeTime.fifteenseconds;
+				E_DALIExtendedFadeTimeBase.Base16:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixteenseconds;
+			END_CASE
+		END_IF
+		IF (eExtendedFadeTimeMultiplier = E_DALIExtendedFadeTimeMultiplier.Multiplier10s) THEN
+			CASE eExtendedFadeTimeBase OF
+				E_DALIExtendedFadeTimeBase.Base01:	eExtendedFadeTime := E_DALIExtendedFadeTime.ten1seconds;
+				E_DALIExtendedFadeTimeBase.Base02:	eExtendedFadeTime := E_DALIExtendedFadeTime.twentyseconds;
+				E_DALIExtendedFadeTimeBase.Base03:	eExtendedFadeTime := E_DALIExtendedFadeTime.thirtyseconds;
+				E_DALIExtendedFadeTimeBase.Base04:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourtyseconds;
+				E_DALIExtendedFadeTimeBase.Base05:	eExtendedFadeTime := E_DALIExtendedFadeTime.fiftyseconds;
+				E_DALIExtendedFadeTimeBase.Base06:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixtyseconds;
+				E_DALIExtendedFadeTimeBase.Base07:	eExtendedFadeTime := E_DALIExtendedFadeTime.seventyseconds;
+				E_DALIExtendedFadeTimeBase.Base08:	eExtendedFadeTime := E_DALIExtendedFadeTime.eightyseconds;
+				E_DALIExtendedFadeTimeBase.Base09:	eExtendedFadeTime := E_DALIExtendedFadeTime.ninetyseconds;
+				E_DALIExtendedFadeTimeBase.Base10:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredseconds;
+				E_DALIExtendedFadeTimeBase.Base11:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredtenseconds;
+				E_DALIExtendedFadeTimeBase.Base12:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredtwentyseconds;
+				E_DALIExtendedFadeTimeBase.Base13:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredthirtyseconds;
+				E_DALIExtendedFadeTimeBase.Base14:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredfourtyseconds;
+				E_DALIExtendedFadeTimeBase.Base15:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredfiftyseconds;
+				E_DALIExtendedFadeTimeBase.Base16:	eExtendedFadeTime := E_DALIExtendedFadeTime.onehundredsixtyseconds;
+			END_CASE
+		END_IF
+		IF (eExtendedFadeTimeMultiplier = E_DALIExtendedFadeTimeMultiplier.Multiplier1min) THEN
+			CASE eExtendedFadeTimeBase OF
+				E_DALIExtendedFadeTimeBase.Base01:	eExtendedFadeTime := E_DALIExtendedFadeTime.oneminute;
+				E_DALIExtendedFadeTimeBase.Base02:	eExtendedFadeTime := E_DALIExtendedFadeTime.twominutes;
+				E_DALIExtendedFadeTimeBase.Base03:	eExtendedFadeTime := E_DALIExtendedFadeTime.threeminutes;
+				E_DALIExtendedFadeTimeBase.Base04:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourminutes;
+				E_DALIExtendedFadeTimeBase.Base05:	eExtendedFadeTime := E_DALIExtendedFadeTime.fiveminutes;
+				E_DALIExtendedFadeTimeBase.Base06:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixminutes;
+				E_DALIExtendedFadeTimeBase.Base07:	eExtendedFadeTime := E_DALIExtendedFadeTime.sevenminutes;
+				E_DALIExtendedFadeTimeBase.Base08:	eExtendedFadeTime := E_DALIExtendedFadeTime.eightminutes;
+				E_DALIExtendedFadeTimeBase.Base09:	eExtendedFadeTime := E_DALIExtendedFadeTime.nineminutes;
+				E_DALIExtendedFadeTimeBase.Base10:	eExtendedFadeTime := E_DALIExtendedFadeTime.tenminutes;
+				E_DALIExtendedFadeTimeBase.Base11:	eExtendedFadeTime := E_DALIExtendedFadeTime.elevenminutes;
+				E_DALIExtendedFadeTimeBase.Base12:	eExtendedFadeTime := E_DALIExtendedFadeTime.twelveminutes;
+				E_DALIExtendedFadeTimeBase.Base13:	eExtendedFadeTime := E_DALIExtendedFadeTime.thirteenminutes;
+				E_DALIExtendedFadeTimeBase.Base14:	eExtendedFadeTime := E_DALIExtendedFadeTime.fourteenminutes;
+				E_DALIExtendedFadeTimeBase.Base15:	eExtendedFadeTime := E_DALIExtendedFadeTime.fifteenminutes;
+				E_DALIExtendedFadeTimeBase.Base16:	eExtendedFadeTime := E_DALIExtendedFadeTime.sixteenminutes;
+			END_CASE
+		END_IF
+	ELSE
+		eExtendedFadeTime := E_DALIExtendedFadeTime.unknown;
+	END_IF
+{endregion}
+25:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(	bStart:= FALSE);
+		nStep := 0;
+	END_IF
+{endregion}	
+1000:
+{region "Set Fade Time"}
+	fbSetFadeTime(	bStart := TRUE,
+					nAddress := nAddress,
+					eAddressType := eAddressType,
+					eCommandPriority := E_DALICommandPriority.Middle,
+					eFadeTime := eFadeTime);
+	IF (NOT fbSetFadeTime.bBusy) THEN
+		fbSetFadeTime(bStart := FALSE);
+		{region " Display whether Fade Time is available²}
+		IF (eFadeTime = 0) THEN
+			bNoFadeTime := FALSE;
+		ELSE
+			bNoFadeTime := TRUE;
+		END_IF
+		{endregion}
+		nStep := 0;
+	END_IF
+{endregion}
+1010:
+{region "Set Fade Rate"}
+	fbSetFadeRate(	bStart := TRUE,
+					nAddress := nAddress,
+					eAddressType := eAddressType,
+					eCommandPriority := E_DALICommandPriority.Middle,
+					eFadeRate := eFadeRate);
+	IF (NOT fbSetFadeRate.bBusy) THEN
+		fbSetFadeRate(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+1020:
+{region "Set Extended Fade Time"}
+	CASE eExtendedFadeTime OF
+		E_DALIExtendedFadeTime.NoFade:					eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Unknown;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Disabled;
+		E_DALIExtendedFadeTime.onehundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base01;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.twohundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base02;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.threehundred:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base03;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.fourhundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base04;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.fivehundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base05;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.sixhundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base06;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.sevenhundred:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base07;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.eighthundred:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base08;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.ninehundred:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base09;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousand:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base10;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandonehundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base11;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandtwohundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base12;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandthreehundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base13;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandfourhundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base14;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandfivehundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base15;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onethousandsixhundred:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base16;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier100ms;
+		E_DALIExtendedFadeTime.onesecond:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base01;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.twoseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base02;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.threeseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base03;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.fourseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base04;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.fiveseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base05;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.sixseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base06;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.sevenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base07;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.eightseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base08;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.nineseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base09;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.tenseconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base10;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.elevenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base11;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.twelveseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base12;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.thirteenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base13;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.fourteenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base14;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.fifteenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base15;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.sixteenseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base16;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1s;
+		E_DALIExtendedFadeTime.ten1seconds:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base01;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.twentyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base02;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.thirtyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base03;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.fourtyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base04;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.fiftyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base05;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.sixtyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base06;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.seventyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base07;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.eightyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base08;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.ninetyseconds:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base09;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredseconds:		eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base10;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredtenseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base11;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredtwentyseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base12;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredthirtyseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base13;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredfourtyseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base14;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredfiftyseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base15;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.onehundredsixtyseconds:	eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base16;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier10s;
+		E_DALIExtendedFadeTime.oneminute:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base01;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.twominutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base02;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.threeminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base03;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.fourminutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base04;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.fiveminutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base05;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.sixminutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base06;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.sevenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base07;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.eightminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base08;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.nineminutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base09;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.tenminutes:				eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base10;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.elevenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base11;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.twelveminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base12;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.thirteenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base13;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.fourteenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base14;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.fifteenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base15;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.sixteenminutes:			eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Base16;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Multiplier1min;
+		E_DALIExtendedFadeTime.unknown:					eExtendedFadeTimeBase := E_DALIExtendedFadeTimeBase.Unknown;
+														eExtendedFadeTimeMultiplier := E_DALIExtendedFadeTimeMultiplier.Unknown;
+	END_CASE
+	fbSetExtendedFadeTime(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := eAddressType,
+							eCommandPriority := E_DALICommandPriority.Middle,
+							eExtendedFadeTimeBase := eExtendedFadeTimeBase,
+							eExtendedFadeTimeMultiplier := eExtendedFadeTimeMultiplier);
+	IF (NOT fbSetExtendedFadeTime.bBusy) THEN
+		fbSetExtendedFadeTime(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+END_CASE]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

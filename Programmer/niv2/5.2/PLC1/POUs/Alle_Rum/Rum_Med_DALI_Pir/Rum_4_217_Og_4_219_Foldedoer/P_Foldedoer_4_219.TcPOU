@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Foldedoer_4_219" Id="{113bd217-ebc1-4194-8590-ae4936340b75}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Foldedoer_4_219
+VAR
+	bFoldingDoorOpen 		AT %I*	: BOOL;
+	
+	arrTopButtonZone1						: ARRAY[1..2] OF BOOL;
+	arrBottomButtonZone1					: ARRAY[1..2] OF BOOL;
+	arrTopButtonZone1Comb				: ARRAY[1..2] OF BOOL;
+	arrBottomButtonZone1Comb			: ARRAY[1..2] OF BOOL;
+	
+	arrstPirSensorData						: ARRAY[1..2] OF SH_Light.ST_DALI_Sensor;
+	arrstPirSensorDataComb				: ARRAY[1..2] OF SH_Light.ST_DALI_Sensor;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[A_ButtonLogic();
+A_SensorLogic();]]></ST>
+    </Implementation>
+    <Action Name="A_ButtonLogic" Id="{f5341b51-aaf5-470d-a876-403532d7bbde}">
+      <Implementation>
+        <ST><![CDATA[arrTopButtonZone1[1] := GVL_EnOcean.strEnOceanSwitch_Rum_4_217.bT2_OFF;
+arrBottomButtonZone1[1] := GVL_EnOcean.strEnOceanSwitch_Rum_4_217.bT2_ON;
+arrTopButtonZone1[2] := GVL_EnOcean.strEnOceanSwitch_Rum_4_219.bT2_ON;
+arrBottomButtonZone1[2] := GVL_EnOcean.strEnOceanSwitch_Rum_4_219.bT2_OFF;
+
+IF bFoldingDoorOpen THEN
+	arrTopButtonZone1Comb[1] := arrTopButtonZone1[1] OR arrTopButtonZone1[2];
+	arrTopButtonZone1Comb[2] := arrTopButtonZone1Comb[1];
+	arrBottomButtonZone1Comb[1] := arrBottomButtonZone1[1] OR arrBottomButtonZone1[2];
+	arrBottomButtonZone1Comb[2] := arrBottomButtonZone1Comb[1];
+ELSE
+	arrTopButtonZone1Comb := arrTopButtonZone1;
+	arrBottomButtonZone1Comb := arrBottomButtonZone1;
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_SensorLogic" Id="{ed4afc4c-58c6-45bb-89c4-01fbf9eaf428}">
+      <Implementation>
+        <ST><![CDATA[IF bFoldingDoorOpen THEN
+	//Input fra sensorer samles
+	arrstPirSensorDataComb[1].fBrightness			:= MIN(arrstPirSensorData[1].fBrightness, arrstPirSensorData[2].fBrightness);
+	arrstPirSensorDataComb[1].bPrc					:= arrstPirSensorData[1].bPrc OR arrstPirSensorData[2].bPrc;
+	arrstPirSensorDataComb[1].bBrightnessRead	:= arrstPirSensorData[1].bBrightnessRead OR arrstPirSensorData[2].bBrightnessRead;
+	arrstPirSensorDataComb[2].fBrightness			:= arrstPirSensorDataComb[1].fBrightness;
+	arrstPirSensorDataComb[2].bPrc					:= arrstPirSensorDataComb[1].bPrc;
+	arrstPirSensorDataComb[2].bBrightnessRead	:= arrstPirSensorDataComb[1].bBrightnessRead;
+
+	//Output til sensorer fordeles
+	IF arrstPirSensorDataComb[1].bQueryBrightness OR arrstPirSensorDataComb[2].bQueryBrightness THEN
+		arrstPirSensorData[1].bQueryBrightness := TRUE;
+		arrstPirSensorData[2].bQueryBrightness := TRUE;
+	ELSE
+		arrstPirSensorData[1].bQueryBrightness := FALSE;
+		arrstPirSensorData[2].bQueryBrightness := FALSE;
+	END_IF
+ELSE
+	//Input fra sensorer samles uden ændring
+	arrstPirSensorDataComb[1].fBrightness			:= arrstPirSensorData[1].fBrightness;
+	arrstPirSensorDataComb[1].bPrc					:= arrstPirSensorData[1].bPrc;
+	arrstPirSensorDataComb[1].bBrightnessRead	:= arrstPirSensorData[1].bBrightnessRead;
+	arrstPirSensorDataComb[2].fBrightness			:= arrstPirSensorData[2].fBrightness;
+	arrstPirSensorDataComb[2].bPrc					:= arrstPirSensorData[2].bPrc;
+	arrstPirSensorDataComb[2].bBrightnessRead := arrstPirSensorData[2].bBrightnessRead;
+	
+	//Output til sensorer fordeles uden ændring
+	IF arrstPirSensorDataComb[1].bQueryBrightness THEN
+		arrstPirSensorData[1].bQueryBrightness := TRUE;
+	ELSE
+		arrstPirSensorData[1].bQueryBrightness := FALSE;
+	END_IF
+	IF arrstPirSensorDataComb[2].bQueryBrightness THEN
+		arrstPirSensorData[2].bQueryBrightness := TRUE;
+	ELSE
+		arrstPirSensorData[2].bQueryBrightness := FALSE;
+	END_IF
+END_IF
+	]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

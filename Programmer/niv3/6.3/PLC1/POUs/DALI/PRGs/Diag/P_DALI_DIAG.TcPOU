@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI_DIAG" Id="{0e4a29aa-8276-4a02-9e6b-c3add38a42ae}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DALI_DIAG
+VAR
+	fbDALIDiag: ARRAY [1.. SH_Light.DALI_Param.MAX_DALIV2_LINES] OF FB_DALI_Diag;
+	bOneDaliBallastMissing: ARRAY [1.. SH_Light.DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	bMissingShortAddress: ARRAY [1.. SH_Light.DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	bSeveralMissingShortAddress: ARRAY [1.. SH_Light.DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	
+	nDiagIdx: BYTE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbDALIDiag[1].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[1];
+fbDALIDiag[2].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[2];
+fbDALIDiag[3].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[3];
+//fbDALIDiag[4].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[4];
+
+
+
+FOR nDiagIdx := 1 TO MAX_DALIV2_LINES DO
+	fbDALIDiag[nDiagIdx](
+		bReInit:= , 
+		bErrorFromSystem:= , 
+		DALI_LINE_NUM:= nDiagIdx, 
+		bOneDaliBallastMissing =>bOneDaliBallastMissing[nDiagIdx], 
+		bMissingShortAddress=> bMissingShortAddress[nDiagIdx], 
+		bSeveralMissingShortAddress=> bSeveralMissingShortAddress[nDiagIdx], 
+		bBusy=> , 
+		nErrorId=> GVL_AHDataModbus.arrFB_DALIDiagErrorId[nDiagIdx], 
+		bErr=> );
+
+END_FOR
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

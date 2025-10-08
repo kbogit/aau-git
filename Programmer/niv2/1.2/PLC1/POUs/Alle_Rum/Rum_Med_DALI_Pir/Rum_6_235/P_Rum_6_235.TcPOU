@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Rum_6_235" Id="{2897868c-e851-49b9-b5f0-adc160fb9fb3}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Rum_6_235
+VAR
+(*
+Rummet består af to lysgrupper - L1G2 og L4G1 - på to forskellige linjer
+Begge grupper afhænger af samme PIR-input - pir-adr. 14 og 15 - på DALI-linje 3.
+Derfor oprettes to adskilte reguleringer med samme PV. Dvs., at knapfunktion og pirfunktion forbliver den samme.
+*)
+
+	arrfbLysGruppe			: ARRAY [1..2] OF FB_Light_Type_A;
+	arrstDaliSetupGruppe	: ARRAY [1..2] OF SH_Light.ST_DALI_RoomSetup :=
+	
+													[(	byShrtAdr_Prim	:= 15, 
+														byGrpAdr_Prim		:= 2, 
+														eMod_Prim			:= E_DALIAddressType.Group, 
+														//byShrtAdr_Sec		:= 1, 
+														//byGrpAdr_Sec		:= 1, 
+														//eMod_Sec			:= E_DALIAddressType.Short, 
+														//byShrtAdr_Supl		:= 1,
+														//byGrpAdr_Supl		:= 1,
+														//eMod_Supl			:=  E_DALIAddressType.Short, 
+														DALI_LINE_NUM_PRIM := arrDALI_LINE_NUM_LIGHT[1], 
+														DALI_LINE_NUM_SEC := 0, //0 = ingen zonestyring/vinduerække
+														DALI_LINE_NUM_SUPL := arrDALI_LINE_NUM_PENDANTS[1]),
+														
+													(	byShrtAdr_Prim	:= 11, 
+														byGrpAdr_Prim		:= 1, 
+														eMod_Prim			:= E_DALIAddressType.Group, 
+														//byShrtAdr_Sec		:= 1, 
+														//byGrpAdr_Sec		:= 1, 
+														//eMod_Sec			:= E_DALIAddressType.Short, 
+														//byShrtAdr_Supl		:= 1,
+														//byGrpAdr_Supl		:= 1,
+														//eMod_Supl			:=  E_DALIAddressType.Short,
+														DALI_LINE_NUM_PRIM := arrDALI_LINE_NUM_LIGHT[2], 
+														DALI_LINE_NUM_SEC := 0, 
+														DALI_LINE_NUM_SUPL := arrDALI_LINE_NUM_PENDANTS[2])];
+														
+	arrstLiveDataGruppe			: ARRAY [1..2] OF SH_Light.ST_LiveData;
+	arrRunTuningGruppe			: ARRAY[1..2] OF BOOL;
+	
+	bTopButtonZone1				: BOOL;
+	bTopButtonZone1_Visu		: BOOL;
+	bBottomButtonZone1			: BOOL;
+	bBottomButtonZone1_Visu	: BOOL;
+	bButtonZone2					: BOOL;
+	bNeighborRoomsPir			: BOOL;
+	fLuxOn								: REAL;
+	fLuxDim							: REAL;
+	tPIRDim							: TIME;
+	tPIROff							: TIME;
+	fOffsetSec						: REAL := 20;
+	bOccupiedRoom				: BOOL;
+
+	bRunTuning						: BOOL;
+
+
+// Sensor Settings
+	//fbSensor						: SH_Light.FB_NIKO_P46xx_1Pcs;
+	fbSensor					: SH_Light.FB_NIKO_P46xx_2Pcs;
+	//bySensorAddr				: BYTE := 7;
+	arrSensorAddr			: ARRAY[1..2] OF BYTE := [12,13];
+	bInitialize						: BOOL := TRUE;
+	stDaliSensorSetup			: ST_DALI_NIKOP46SetupData := (
+																nSensitivityPIRSegmentA:=nSensitivityOccupancy,
+																nSensitivityPIRSegmentB:=nSensitivityOccupancy,
+																nSensitivityPIRSegmentC:=nSensitivityOccupancy);
+	//bInitErr							: BOOL;
+	//bInitDone						: BOOL;
+	arrInitErr						: ARRAY [1..2] OF BOOL;
+	arrInitDone					: ARRAY [1..2] OF BOOL;
+	arrSensorScales				: ARRAY [1..10] OF SH_Light.ST_DALI_SensorScaleMode :=
+																							[	(fMeassureMaxSensor := rMeassure_Zone1, fReadMaxSensor := rRead_Zone1),	
+																								(fMeassureMaxSensor := rMeassure_Zone1, fReadMaxSensor := rRead_Zone1),																						
+																								8(())];
+																								
+	bCancelHoldTimerOccupancy	: BOOL;
+(*	eEventPriorityOccupancy		: E_DALIEventPriority := E_DALIEVENTPRIORITY.Middle;
+	nHoldTimerOccupancy			: WORD := 5; // Value in s. 	
+	nReportTimerOccupancy		: BYTE := 120; // Value in s, Preset manufacturer value
+	nDeadtimeTimerOccupancy		: WORD := 100; // Value in ms, Predefined Value of DALI Standard
+	bCancelHoldTimerOccupancy	: BOOL; *)
+	
+
+(*	bEnableLuxEvent				: BOOL;
+	eEventPriorityBrightness	: E_DALIEventPriority := E_DALIEVENTPRIORITY.Middle;
+	nDeadtimeTimerBrightness	: WORD := 1500; // Value in ms, Predefined Value of DALI Standard
+	nHysteresisBrightness		: BYTE := 2; // Value in %
+	nHysteresisMinBrightness	: BYTE := 10; // Absolute Value, depending on the manufacturer specific resolution
+	nReportTimerBrightness		: BYTE := 120; // Value in s, Preset manufacturer value
+*)
+
+	
+
+//ModbusComm setup
+	
+	fbWriteSPLuxLevel			: SH_Light.FB_TwoVal_SelectOne_RTrigChange;
+	fbWritePirDelayTIme		: SH_Light.FB_TwoVal_SelectOne_RTrigChange;
+	stRoomDataPLC				: SH_Light.ST_RoomDataPLC	:=	(
+																	uiPirOffDelayTime	:= 30,
+																	uiSpLuxLevel			:= 500,
+																	uiPirDimDelayTime	:= 15,
+																	uiSpDimLuxLevel		:= 200);
+
+	fbBallastOnHours			: SH_Light.FB_CountOnHours;
+	bEnableHourCount		: BOOL := TRUE;
+	
+	//Non-persistent modbus data
+	bPirActive_MB					AT%MX318.0	: BOOL;				//bPirLys i gammel kode
+	uiActLuxLevel_MB			AT%MB322		: UINT;				//intHMIAktueltLux i gammel kode
+	uiActLightLevelPct_MB	AT%MB328		: UINT;				//intDALI_Gruppe1_Lysniveau i gammel kode
+	
+	//For Conversion
+	uiPirOffMinutes						: UINT;
+	udTimeScaling						: UDINT := 60000;
+	uiLuxOn								: UINT;
+	
+	//max values checks
+	uiMaxLuxLevel						: UINT := 1023;
+	uiMaxPirOffMinutes				: UINT := 180;
+
+
+END_VAR
+
+VAR CONSTANT
+	Sensor_DALI_LINE_NUM				: BYTE := 3;
+	arrDALI_LINE_NUM_LIGHT			: ARRAY[1..2] OF BYTE := [1,4]; //korrekt rækkefølge nødvendig
+	arrDALI_LINE_NUM_PENDANTS: ARRAY[1..2] OF BYTE := [0,0]; //korrekt rækkefølge nødvendig. 0 = ingen pendler
+	nSensitivityOccupancy						: BYTE:= 4; //setting Sensivity (0..4) 0 (Off), 1 (Min), 2(Low), 3(High) and 4 (Max)
+END_VAR
+
+VAR PERSISTENT
+	stPirSensorData: SH_Light.ST_DALI_Sensor;
+	arrstTuneDataGruppe: ARRAY [1..2] OF SH_Light.ST_TuneData_EX;
+	
+	uiPirOffDelayTime_MB		AT%MB320			: UINT;				//intHMI_Pir_SetValue i gammel kode
+	uiSPLuxLevel_MB			AT%MB324		: UINT;				//intHMI_Lux_SetValue i gammel kode
+	uiBallastOnHours_MB		AT%MB332		: UINT;				//dintHMILysbraendtimer1 i gammel kode
+   	byOnHoursOverflowCount							: BYTE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[A_Buttons();
+A_LightCtrl();
+A_Sensor();
+A_modbuscomm();
+]]></ST>
+    </Implementation>
+    <Action Name="A_Buttons" Id="{ff228b8c-d062-4dc0-a0a7-1fa7e0e46014}">
+      <Implementation>
+        <ST><![CDATA[bTopButtonZone1		:= GVL_EnOcean.strEnOceanSwitch_Rum_6_235_Indgang.bT1_ON OR GVL_EnOcean.strEnOceanSwitch_Rum_6_235_Ekstra.bT1_ON OR bTopButtonZone1_Visu;
+bBottomButtonZone1	:= GVL_EnOcean.strEnOceanSwitch_Rum_6_235_Indgang.bT1_OFF OR  GVL_EnOcean.strEnOceanSwitch_Rum_6_235_Ekstra.bT1_OFF OR bBottomButtonZone1_Visu;]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_LightCtrl" Id="{00d2888a-5129-4a91-acae-8d0e4eba2672}">
+      <Implementation>
+        <ST><![CDATA[
+arrfbLysGruppe[1]( 
+	nZoneID:= 1, 
+	bButtonZone1:= bTopButtonZone1,
+	bBottomButtonZone1 := bBottomButtonZone1, 
+	//bButtonZone2:= bButtonZone2,
+	fLuxOn:= fLuxOn, 
+	fLuxDim:= fLuxDim, 
+	tPIRDim:= tPIRDim, 
+	tPIROff:= tPIROff, 
+	fOffsetSec:= fOffsetSec, 
+	bReInit:= , 
+	stDaliSetup:= arrstDaliSetupGruppe[1], 
+	ipCommunication_Prim:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[1]], 
+	//ipCommunication_Sec:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[1]],
+	//ipCommunication_Supl:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_PENDANTS[1]],
+	fMinOutputPowerLevelRoom:= 15, 
+	fMaxOutputPowerLevelRoom:= 100, 
+	nCycleTimeInMS:= SH_Light.DALI_Param.nPlcTaskCycleTimeInMS*SH_Light.DALI_Param.nDimCmdCycleTimeFactor, 
+	bRunTuning:= arrRunTuningGruppe[1], 
+	bOccupiedRoom=> , 
+	bError_Prim=> , 
+	nError_Prim=> , 
+	stTuneData:=arrstTuneDataGruppe[1] , 
+	stPirSensorData:= stPirSensorData, 					//samme sensordata
+	stLiveData:= arrstLiveDataGruppe[1]);
+
+arrfbLysGruppe[2]( 
+	nZoneID:= 1, 
+	bButtonZone1:= bTopButtonZone1,
+	bBottomButtonZone1 := bBottomButtonZone1, 
+	bButtonZone2:= bButtonZone2,
+	fLuxOn:= fLuxOn, 
+	fLuxDim:= fLuxDim, 
+	tPIRDim:= tPIRDim, 
+	tPIROff:= tPIROff, 
+	fOffsetSec:= fOffsetSec, 
+	bReInit:= , 
+	stDaliSetup:= arrstDaliSetupGruppe[2], 
+	ipCommunication_Prim:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[2]], 
+	//ipCommunication_Sec:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[2]],
+	//ipCommunication_Supl:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_PENDANTS[2]],
+	fMinOutputPowerLevelRoom:= 15, 
+	fMaxOutputPowerLevelRoom:= 100, 
+	nCycleTimeInMS:= SH_Light.DALI_Param.nPlcTaskCycleTimeInMS*SH_Light.DALI_Param.nDimCmdCycleTimeFactor, 
+	bRunTuning:= arrRunTuningGruppe[2], 
+	bOccupiedRoom=> , 
+	bError_Prim=> , 
+	nError_Prim=> , 
+	stTuneData:=arrstTuneDataGruppe[2] , 
+	stPirSensorData:= stPirSensorData, 					//samme sensordata
+	stLiveData:= arrstLiveDataGruppe[2]);	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_ModbusComm" Id="{723db2e4-8da8-4834-96f7-130019313f5e}">
+      <Implementation>
+        <ST><![CDATA[//Manage data for modbus communication
+
+//Manage data for read-only in PLC
+stRoomDataPLC.bPirActive			:= stPirSensorData.bPrc;
+stRoomDataPLC.uiActLuxLevel			:= TO_UINT(TRUNC(stPirSensorData.fBrightness));
+stRoomDataPLC.uiActLightLevelPct	:= TO_UINT(TRUNC(arrfbLysGruppe[1].fbBallast.fActlLgtLvl_Prim));
+		//stRoomDataPLC.uiActLightLevelPct	:= TO_UINT(TRUNC(fbLys.fbBallast.fActlLgtLvl_Prim)); //if only one group light control
+stRoomDataPLC.uiBallastOnHours		:= uiBallastOnHours_MB; //The calculation for BallastOnHours is stored directly to the MB register below
+
+
+//Assign data for read-only to MB registers
+bPirActive_MB			:= stRoomDataPLC.bPirActive;
+uiActLuxLevel_MB		:= stRoomDataPLC.uiActLuxLevel;
+uiActLightLevelPct_MB	:= stRoomDataPLC.uiActLightLevelPct;
+
+	//calculate BallastOnHours
+	fbBallastOnHours(
+		bEnableHourCount	:= bEnableHourCount,
+		bPauseCount			:= arrfbLysGruppe[1].fbLightCtrl.bOffZone1,
+		uiOnHours			:= uiBallastOnHours_MB,			//OnHours is updated here
+		byOverflowCount		:= byOnHoursOverflowCount);
+
+
+//Manage data for read/write for both PLC and MB registers
+fbWriteSPLuxLevel(	nMaxValOut	:= uiMaxLuxLevel,
+					nValIn1		:= uiSPLuxLevel_MB,		//nValIn1 takes priotity in case of download or restart
+					nValIn2		:= stRoomDataPLC.uiSpLuxLevel,
+					nValOut		=> uiLuxOn
+				);
+
+
+fbWritePirDelayTIme(	nMaxValOut	:= uiMaxPirOffMinutes,
+						nValIn1		:= uiPirOffDelayTime_MB,		//nValIn1 takes priotity in case of download or restart
+						nValIn2		:= stRoomDataPLC.uiPirOffDelayTime,
+						nValOut		=> uiPirOffMinutes
+					);
+					
+
+//Convert read/write modbus data to appropriate datatypes in PLC
+fLuxOn	:= TO_REAL(uiLuxOn);			
+tPIROff	:= TO_TIME(uiPirOffMinutes*udTimeScaling); //Time conversion defaults to ms
+
+fLuxDim	:= TO_REAL(stRoomDataPLC.uiSpDimLuxLevel);			
+tPIRDim	:= TO_TIME(stRoomDataPLC.uiPirDimDelayTime*udTimeScaling); //Time conversion defaults to ms
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Sensor" Id="{2cc2c592-f2a9-4dcb-a62f-c33ccc8dad38}">
+      <Implementation>
+        <ST><![CDATA[
+fbSensor.ipCommunication := P_DALI_Background.arrfbKL6821Communication[Sensor_DALI_LINE_NUM];
+(*
+//only 1 sensor
+fbSensor(
+	byShrtAdr:= bySensorAddr,
+	bInitialize:= bInitialize, 
+	DALI_LINE_NUM:= Sensor_DALI_LINE_NUM, 
+ 	//bCancelHoldTimerOccupancy:= bCancelHoldTimerOccupancy, 
+	stSensorSetup := stDaliSensorSetup,
+	bInitErr=> bInitErr, 
+	bInitDone=> bInitDone,
+	stPirSensorData:= stPirSensorData, 
+	arrSensorScales:= arrSensorScales);
+	*)
+	
+
+//several sensors	
+fbSensor(
+	arrShrtAdr:= arrSensorAddr,
+	bInitialize:= bInitialize, 
+	DALI_LINE_NUM:= Sensor_DALI_LINE_NUM, 
+ 	//bCancelHoldTimerOccupancy:= bCancelHoldTimerOccupancy, 
+	stSensorSetup := stDaliSensorSetup,
+	arrInitErr=> arrInitErr, 
+	arrInitDone=> arrInitDone,
+	stPirSensorData:= stPirSensorData, 
+	arrSensorScales:= arrSensorScales);
+	]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

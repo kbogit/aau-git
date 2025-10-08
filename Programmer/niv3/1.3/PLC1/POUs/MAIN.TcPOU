@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+//Håndterer vedvarende data
+	P_SystemDK.M_nCyclic(bReset := breset );
+//Håndterer DALI-diagnostik (run once)
+	P_DALI_DIAG();
+//Håndterer adressering		
+	DALI_Commissioning();
+//Håndterer energirapportering
+	P_DALI_Energy_Line();
+//Håndterer moodbus-kommunikation (kun PLC-oversigt)
+	P_AHModbusComm();
+
+//Håndterer individuel lyskontrol i lokaler
+	//Gange
+	P_Gang_1_312A();
+	P_Gang_1_315();
+	P_Gang_1_316();
+	P_Gang_6_310();
+
+	//Rum
+	P_Rum_1_317();
+	P_Rum_1_318();
+	P_Rum_1_319();
+	P_Rum_1_320();
+	P_Rum_1_321();
+	P_Rum_1_322();
+	P_Rum_1_323();
+	P_Rum_1_324();
+	P_Rum_1_325();
+	P_Rum_1_326();
+	P_Rum_1_327();
+	P_Rum_1_328();
+	P_Rum_1_330();
+	P_Rum_6_310_Sofagruppe();
+	P_Rum_6_327();
+	P_Rum_6_328();
+	P_Rum_6_329();
+	P_Rum_6_330A();
+	P_Rum_6_330B();
+	P_Rum_6_331();
+	P_Rum_6_333();
+	P_Rum_6_337();
+
+	//Trapper
+	//P_Trappe();
+	
+//Testprogrammer
+	//P_DALI_Energy_Firmware_Test();]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

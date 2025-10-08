@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Gang_4_330" Id="{18f017d0-ed32-4c14-b8d9-f9b2db88040e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Gang_4_330
+VAR
+(*Gangen består af to lysgrupper - 3 og 13 - på to forskellige DALI-linjer - 2 og 1 henh..
+Begge grupper afhænger af samme PIR-input - pir-adr. 5 - på DALI-linje 2.
+Derfor oprettes to adskilte reguleringer med samme PV. Dvs., at knapfunktion og pirfunktion forbliver den samme.
+*)
+
+	arrfbLysGruppe			: ARRAY [1..2] OF FB_Light_Type_B;
+	arrstDaliSetupGruppe	: ARRAY[1..2] OF SH_Light.ST_DALI_RoomSetup := 
+	
+													[(	byShrtAdr_Prim := 22, 
+														byGrpAdr_Prim := 3, 
+														eMod_Prim := E_DALIAddressType.Group, 
+														byShrtAdr_Sec := 1, 
+														byGrpAdr_Sec := 1, 
+														eMod_Sec := E_DALIAddressType.Short, 
+														byShrtAdr_Supl := 1, 
+														DALI_LINE_NUM_PRIM := arrDALI_LINE_NUM_LIGHT[1], 
+														DALI_LINE_NUM_SEC := 0, //0 = ingen zonestyring/vinduerække
+														DALI_LINE_NUM_SUPL := arrDALI_LINE_NUM_PENDANTS[1]),
+														
+													(	byShrtAdr_Prim := 49, 
+														byGrpAdr_Prim := 13, 
+														eMod_Prim := E_DALIAddressType.Group, 
+														byShrtAdr_Sec := 1, 
+														byGrpAdr_Sec := 1, 
+														eMod_Sec := E_DALIAddressType.Short, 
+														byShrtAdr_Supl := 1, 
+														DALI_LINE_NUM_PRIM := arrDALI_LINE_NUM_LIGHT[2], 
+														DALI_LINE_NUM_SEC := 0, 
+														DALI_LINE_NUM_SUPL := arrDALI_LINE_NUM_PENDANTS[2])];
+														
+	arrstLiveDataGruppe		: ARRAY [1..2] OF SH_Light.ST_LiveData;
+	//stLiveData AT %MB22	: SH_Light.ST_LiveData;
+	
+	arrRunTuningGruppe: ARRAY[1..2] OF BOOL;
+	
+	
+	
+	bTopButtonZone1			: BOOL;
+	bTopButtonZone1_Visu	: BOOL;
+	bBottomButtonZone1		: BOOL;
+	bBottomButtonZone1_Visu	: BOOL;
+	bButtonZone2			: BOOL;
+	bNeighborRoomsPir		: BOOL;
+	fLuxOn					: REAL := 500;
+	fLuxDim					: REAL := 200;
+	tPIRDim					: TIME := T#15M;
+	tPIROff					: TIME := T#30M;
+	fOffsetSec				: REAL := 20;
+
+
+
+// Sensor Settings
+	fbSensor					: SH_Light.FB_NIKO_P46xx_1Pcs;
+	//fbSensor					: SH_Light.FB_NIKO_P46xx_3Pcs;
+	bySensorAddr				: BYTE := 5;
+	//arrSensorAddr				: ARRAY[1..3] OF BYTE := [7,8,9];
+	bInitialize					: BOOL := TRUE;
+	stDaliSensorSetup			: ST_DALI_NIKOP46SetupData;
+	bInitErr					: BOOL;
+	bInitDone					: BOOL;
+	//arrInitErr					: ARRAY [1..3] OF BOOL;
+	//arrInitDone					: ARRAY [1..3] OF BOOL;
+	arrSensorScales				: ARRAY [1..10] OF SH_Light.ST_DALI_SensorScaleMode := [	(fMeassureMaxSensor := 1023, fReadMaxSensor := 1023),																																										
+																						9(())];
+	bCancelHoldTimerOccupancy	: BOOL;
+(*	eEventPriorityOccupancy		: E_DALIEventPriority := E_DALIEVENTPRIORITY.Middle;
+	nHoldTimerOccupancy			: WORD := 5; // Value in s. 	
+	nReportTimerOccupancy		: BYTE := 120; // Value in s, Preset manufacturer value
+	nDeadtimeTimerOccupancy		: WORD := 100; // Value in ms, Predefined Value of DALI Standard
+	bCancelHoldTimerOccupancy	: BOOL;
+	nSensitivityOccupancy		: BYTE:= 3; //setting Sensivity (0..4) 0 (Off), 1 (Min), 2(Low), 3(High) and 4 (Max)
+
+	bEnableLuxEvent				: BOOL;
+	eEventPriorityBrightness	: E_DALIEventPriority := E_DALIEVENTPRIORITY.Middle;
+	nDeadtimeTimerBrightness	: WORD := 1500; // Value in ms, Predefined Value of DALI Standard
+	nHysteresisBrightness		: BYTE := 2; // Value in %
+	nHysteresisMinBrightness	: BYTE := 10; // Absolute Value, depending on the manufacturer specific resolution
+	nReportTimerBrightness		: BYTE := 120; // Value in s, Preset manufacturer value
+*)
+
+	//stDaliSetup: SH_Light.ST_DALI_RoomSetup;
+
+END_VAR
+
+VAR CONSTANT
+	Sensor_DALI_LINE_NUM: BYTE := 3;
+	arrDALI_LINE_NUM_LIGHT: ARRAY[1..2] OF BYTE := [2,1]; //korrekt rækkefølge nødvendig
+	arrDALI_LINE_NUM_PENDANTS: ARRAY[1..2] OF BYTE := [0,0]; //korrekt rækkefølge nødvendig. 0 = ingen pendler
+END_VAR
+VAR PERSISTENT
+	stPirSensorData: SH_Light.ST_DALI_Sensor;
+	arrstTuneDataGruppe: ARRAY [1..2] OF SH_Light.ST_TuneData_EX;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[A_Buttons();
+A_LightCtrl();
+A_Sensor();
+]]></ST>
+    </Implementation>
+    <Action Name="A_Buttons" Id="{38ee2fa7-0061-4b41-bec5-948c0730d664}">
+      <Implementation>
+        <ST><![CDATA[bTopButtonZone1		:= GVL_EnOcean.strEnOceanSwitch_Gang_4_330.bT2_OFF OR bTopButtonZone1_Visu;
+bBottomButtonZone1	:= GVL_EnOcean.strEnOceanSwitch_Gang_4_330.bT2_ON OR bBottomButtonZone1_Visu;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_LightCtrl" Id="{c75214a9-3622-4954-b7a7-5506d67f6631}">
+      <Implementation>
+        <ST><![CDATA[bNeighborRoomsPir	:= P_Gang_4_308.stPirSensorData.bPrc      OR
+						P_Rum_4_324.stPirSensorData.bPrc      OR
+						P_Rum_4_325.stPirSensorData.bPrc      OR
+						P_Rum_4_329.stPirSensorData.bPrc;
+
+
+//gruppe 3
+arrfbLysGruppe[1]( 
+	nZoneID:= 1, 
+	bButtonZone1:= bTopButtonZone1,
+	bBottomButtonZone1 := bBottomButtonZone1, 
+	bButtonZone2:= bButtonZone2,
+	bNeighborRoomsPir	:=	bNeighborRoomsPir,
+	fLuxOn:= fLuxOn, 
+	fLuxDim:= fLuxDim, 
+	tPIRDim:= tPIRDim, 
+	tPIROff:= tPIROff, 
+	fOffsetSec:= fOffsetSec, 
+	bReInit:= , 
+	stDaliSetup:= arrstDaliSetupGruppe[1], 
+	ipCommunication_Prim:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[1]], 
+	ipCommunication_Sec:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[1]], //samme som lyslinjen, hvis den ikke eksisterer
+	ipCommunication_Supl:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[1]],//samme som lyslinjen, hvis den ikke eksisterer 
+	fMinOutputPowerLevelRoom:= 15, 
+	fMaxOutputPowerLevelRoom:= 100, 
+	nCycleTimeInMS:= 10 , 
+	bRunTuning:= arrRunTuningGruppe[1], 
+	bOccupiedRoom=> , 
+	bError_Prim=> , 
+	nError_Prim=> , 
+	stTuneData:=arrstTuneDataGruppe[1] , 
+	stPirSensorData:= stPirSensorData, 					//samme sensordata
+	stLiveData:= arrstLiveDataGruppe[1]);
+
+//gruppe 13
+arrfbLysGruppe[2]( 
+	nZoneID:= 1, 
+	bButtonZone1:= bTopButtonZone1,
+	bBottomButtonZone1 := bBottomButtonZone1, 
+	bButtonZone2:= bButtonZone2,
+	bNeighborRoomsPir	:=	bNeighborRoomsPir,
+	fLuxOn:= fLuxOn, 
+	fLuxDim:= fLuxDim, 
+	tPIRDim:= tPIRDim, 
+	tPIROff:= tPIROff, 
+	fOffsetSec:= fOffsetSec, 
+	bReInit:= , 
+	stDaliSetup:= arrstDaliSetupGruppe[2], 
+	ipCommunication_Prim:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[2]], 
+	ipCommunication_Sec:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[2]], //samme som lyslinjen, hvis den ikke eksisterer
+	ipCommunication_Supl:= P_DALI_Background.arrfbKL6821Communication[arrDALI_LINE_NUM_LIGHT[2]], //samme som lyslinjen, hvis den ikke eksisterer 
+	fMinOutputPowerLevelRoom:= 15, 
+	fMaxOutputPowerLevelRoom:= 100, 
+	nCycleTimeInMS:= 10 , 
+	bRunTuning:= arrRunTuningGruppe[2], 
+	bOccupiedRoom=> , 
+	bError_Prim=> , 
+	nError_Prim=> , 
+	stTuneData:=arrstTuneDataGruppe[2] , 
+	stPirSensorData:= stPirSensorData, 					//samme sensordata
+	stLiveData:= arrstLiveDataGruppe[2]);	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Sensor" Id="{12e59036-3e28-4538-aaca-963aac93ad8f}">
+      <Implementation>
+        <ST><![CDATA[
+fbSensor.ipCommunication := P_DALI_Background.arrfbKL6821Communication[Sensor_DALI_LINE_NUM];
+
+//only 1 sensor
+fbSensor(
+	byShrtAdr:= bySensorAddr,
+	bInitialize:= bInitialize, 
+	DALI_LINE_NUM:= Sensor_DALI_LINE_NUM, 
+ 	//bCancelHoldTimerOccupancy:= bCancelHoldTimerOccupancy, 
+	stSensorSetup := stDaliSensorSetup,
+	bInitErr=> bInitErr, 
+	bInitDone=> bInitDone,
+	stPirSensorData:= stPirSensorData, 
+	arrSensorScales:= arrSensorScales);
+
+
+(*//several sensors	
+fbSensor(
+	arrShrtAdr:= arrSensorAddr,
+	bInitialize:= bInitialize, 
+	DALI_LINE_NUM:= Sensor_DALI_LINE_NUM, 
+ 	//bCancelHoldTimerOccupancy:= bCancelHoldTimerOccupancy, 
+	stSensorSetup := stDaliSensorSetup,
+	arrInitErr=> arrInitErr, 
+	arrInitDone=> arrInitDone,
+	stPirSensorData:= stPirSensorData, 
+	arrSensorScales:= arrSensorScales);
+	*)]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

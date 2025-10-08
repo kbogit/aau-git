@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_AHModbusComm" Id="{eda726fd-0ac6-4f30-b772-9d75c41c39c9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_AHModbusComm
+VAR
+	arrfbReadAHPirData	: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF SH_Light.FB_ReadAHPirData;
+	arrReadAHPirData		: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF BOOL;
+	
+	arrfbTriggerPulses			: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF SH_Light.FB_ClockPulse;
+	arrGeneratePulses			: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF BOOL := [GVL_AHDataModbus.byNumberOfAH_Neighbors(TRUE)];
+	tTimeInterval					: TIME := T#1S;
+	tPulseTime					: TIME := T#1S;
+	
+	byLineId						: BYTE;
+	byAHId						: BYTE;
+	fbWritePirDelayTime		: R_TRIG;
+	bRunOverrideOnce		: BOOL := FALSE;
+	bEnableDelayTimeOverride : BOOL := FALSE;
+	uiPirOffDelayTimeAllRooms : UINT := 30;
+END_VAR
+
+VAR CONSTANT
+	arrnMBAddr					: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF WORD := [GVL_AHDataModbus.byNumberOfAH_Neighbors(12588)]; //modbus-adresser (%MB600=>12588 default)
+	arrstNeighborIPAddr		: ARRAY[1..GVL_AHDataModbus.byNumberOfAH_Neighbors] OF SH_Light.ST_NeighborIP := [
+																						(sPLCName := 'AH1-1', sIP := '172.24.195.161', IsNeighbor := FALSE), 
+																				     	(sPLCName := 'AH1-2', sIP := '172.24.195.162', IsNeighbor := FALSE), 
+																						(sPLCName := 'AH1-3', sIP := '172.24.195.163', IsNeighbor := FALSE),
+																						(sPLCName := 'AH2-1', sIP := '172.24.195.164', IsNeighbor := FALSE),
+																					    (sPLCName := 'AH2-2', sIP := '172.24.195.165', IsNeighbor := FALSE),
+																						(sPLCName := 'AH2-3', sIP := '172.24.195.166', IsNeighbor := FALSE),
+																		        		(sPLCName := 'AH2-4', sIP := '172.24.195.167', IsNeighbor := FALSE),
+																				(sPLCName := 'AH2-5', sIP := '172.24.195.168', IsNeighbor := TRUE),
+																						(sPLCName := 'AH3-2', sIP := '172.24.195.169', IsNeighbor := FALSE),
+																						(sPLCName := 'AH3-3', sIP := '172.24.195.170', IsNeighbor := FALSE),
+																			        	(sPLCName := 'AH3-4', sIP := '172.24.195.171', IsNeighbor := FALSE),
+																				(sPLCName := 'AH3-5', sIP := '172.24.195.172', IsNeighbor := TRUE),
+																						(sPLCName := 'AH4-1', sIP := '172.24.195.173', IsNeighbor := FALSE),
+																						(sPLCName := 'AH4-2', sIP := '172.24.195.174', IsNeighbor := FALSE),
+																						(sPLCName := 'AH4-3', sIP := '172.24.195.175', IsNeighbor := FALSE),
+																			            (sPLCName := 'AH4-4', sIP := '172.24.195.176', IsNeighbor := FALSE),
+																						(sPLCName := 'AH4-5', sIP := '172.24.195.177', IsNeighbor := FALSE),
+																						(sPLCName := 'AH5-1', sIP := '172.24.195.178', IsNeighbor := FALSE),
+																					    (sPLCName := 'AH5-2', sIP := '172.24.195.179', IsNeighbor := FALSE), 
+																						(sPLCName := 'AH5-3', sIP := '172.24.195.180', IsNeighbor := FALSE),
+																						(sPLCName := 'AH5-4', sIP := '172.24.195.181', IsNeighbor := FALSE),
+																				(sPLCName := 'AH5-5', sIP := '172.24.195.182', IsNeighbor := TRUE),
+																						(sPLCName := 'AH6-1', sIP := '172.24.195.183', IsNeighbor := FALSE),
+																				        (sPLCName := 'AH6-2', sIP := '172.24.195.184', IsNeighbor := FALSE),//Local must be false
+																			         	(sPLCName := 'AH6-3', sIP := '172.24.195.185', IsNeighbor := FALSE)];
+																					//	(sPLCName := 'AH3-1', sIP := '172.24.195.186', IsNeighbor := TRUE) //when ready
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[A_AHNeighborRoomsPirIn();
+A_AHNeighborRoomsPirOut();
+A_DALILineShrtAddrErr();
+A_DelayTimeAllRooms();]]></ST>
+    </Implementation>
+    <Action Name="A_AHNeighborRoomsPirIn" Id="{d700cecf-0966-4d29-8685-eb3e5e84c6dc}">
+      <Implementation>
+        <ST><![CDATA[FOR byAHId := 1 TO GVL_AHDataModbus.byNumberOfAH_Neighbors DO
+	IF arrstNeighborIPAddr[byAHId].IsNeighbor THEN
+		//Generate Pulses
+		arrfbTriggerPulses[byAHId](bGenerateClockPulses:= arrGeneratePulses[byAHId], tTimeInterval:= tTimeInterval, tPulseTime:= tPulseTime);
+		arrReadAHPirData[byAHId]:= arrfbTriggerPulses[byAHId].bPulse;
+		//Read data
+		arrfbReadAHPirData[byAHId](	bReadAHPirData				:=	arrReadAHPirData[byAHId],
+														sIPAddr							:=	arrstNeighborIPAddr[byAHId].sIP,
+														nMBAddr							:=	arrnMBAddr[byAHId],
+														nMBDataBuffer				:=	GVL_AHDataModbus.arrAH_NeighborRoomsPir_In[byAHId],
+														arrAH_NeighborRoomsPir	=>GVL_AHDataModbus.arrAH_NeighborRoomsPir[byAHId]);
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_AHNeighborRoomsPirOut" Id="{d216b7ef-7560-41ac-be0a-2aad93205a2f}">
+      <Implementation>
+        <ST><![CDATA[GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.0 := P_Gang_4_508.bPirActive_MB;
+GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.1 := P_Gang_3_509.bPirActive_MB;
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.2 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.3 :=
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.4 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.5 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.6 :=
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.7 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.8 :=
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.9 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.10 :=
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.11 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.12 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.13 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.14 := 
+//GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.15 := ]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_DALILineShrtAddrErr" Id="{b6ac9a07-651b-473c-87e5-cc09a3aa5691}">
+      <Implementation>
+        <ST><![CDATA[FOR  byLineId := 1 TO SH_Light.DALI_Param.MAX_DALIV2_LINES DO
+	GVL_AHDataModbus.arrDALILineShrtAddrErr[byLineId] :=  TO_UINT(SH_Light.GVL_DALI_LatestError.arrLineShrtAddr[byLineId]);
+END_FOR
+ 
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_DelayTimeAllRooms" Id="{86e64889-c77d-4c0d-8c3e-c950bfe0b521}">
+      <Implementation>
+        <ST><![CDATA[
+fbWritePirDelayTime(CLK := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB<>uiPirOffDelayTimeAllRooms);
+
+IF fbWritePirDelayTime.Q THEN
+	bRunOverrideOnce := TRUE;
+	bEnableDelayTimeOverride := TRUE;
+	
+	P_Gang_3_509.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+	P_Gang_4_508.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+	P_Rum_3_529.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+	P_Gang_4_510A.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+
+ELSE
+	IF bRunOverrideOnce THEN
+		bEnableDelayTimeOverride := FALSE;
+		
+		P_Gang_3_509.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+		P_Gang_4_508.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+		P_Rum_3_529.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+		P_Gang_4_510A.fbWritePirDelayTIme(bEnableOverride := bEnableDelayTimeOverride, nOverRideValue := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn1 := GVL_AHDataModbus.uiPirOffDelayTimeAllRooms_MB, nValIn2 := uiPirOffDelayTimeAllRooms);
+
+		bRunOverrideOnce := FALSE;
+	END_IF
+END_IF
+]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

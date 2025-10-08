@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <DUT Name="ST_WriteSAB05" Id="{672e3ebb-f073-421f-b77d-e04c68a02960}">
+    <Declaration><![CDATA[TYPE ST_WriteSAB05 :
+STRUCT
+	bSelectFunction:BOOL;
+	bSetpointInverse:BOOL;
+	bSetPointSelection:BOOL;
+	bSummerBit:BOOL;
+	bValverClosed:BOOL;
+	bValveIOpen:BOOL;
+	bLiftSetInint:BOOL;
+	bRunInitSeq:BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

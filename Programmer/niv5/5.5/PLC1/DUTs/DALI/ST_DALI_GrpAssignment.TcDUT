@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_DALI_GrpAssignment" Id="{6d375f9a-750e-40b5-b63e-7e403b28a568}">
+    <Declaration><![CDATA[TYPE ST_DALI_GrpAssignment :
+STRUCT
+	bLampPresentInNetwork: BOOL;
+	bFaultOnDALIBallast : BOOL;
+	bLampFailur : BOOL;
+	bLampPowerOn : BOOL;
+	bLimitErrVal : BOOL;
+	bDimmingActive: BOOL;
+	bResetState	: BOOL;
+	bShortAddrMissing: BOOL;
+	bPowerSupplyWasEnabled: BOOL;
+	nGroups	: WORD; 	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

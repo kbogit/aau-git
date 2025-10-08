@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_Part208Switching" Id="{ff107e87-3c8b-4331-a1cf-38e15016760e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part208Switching
+VAR_INPUT
+	ipDALICommunication					:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy								:	BOOL;
+END_VAR
+VAR
+	{region "Visu"}
+	bRead								:	BOOL;
+	bWrite								:	BOOL;
+	sGearType							:	STRING[80];
+	bThreshold							:	BOOL;
+	bAddressingPhysical					:	BOOL;
+	nDownSwitchOffThreshold				:	BYTE;
+	nDownSwitchOnThreshold				:	BYTE;
+	nUpSwitchOffThreshold				:	BYTE;
+	nUpSwitchOnThreshold				:	byte;
+	{endregion}
+	nStep								:	INT;
+	nAddress							:	BYTE;
+	bHideWaitSymbol						:	BOOL := TRUE;
+	nGearType							:	BYTE;
+
+	fb103StartQuiescentMode				:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode				:	FB_DALI103StopQuiescentMode(0);
+	fb208QueryGearType					:	FB_DALI208QueryGearType(0);
+	fb208QueryFeatures					:	FB_DALI208QueryFeatures(0);
+	fb208QuerySwitchStatus				:	FB_DALI208QuerySwitchStatus(0);
+	fb208QueryDownSwitchOffThreshold	:	FB_DALI208QueryDownSwitchOffThreshold(0);
+	fb208QueryDownSwitchOnThreshold		:	FB_DALI208QueryDownSwitchOnThreshold(0);
+	fb208QueryUpSwitchOffThreshold		:	FB_DALI208QueryUpSwitchOffThreshold(0);
+	fb208QueryUpSwitchOnThreshold		:	FB_DALI208QueryUpSwitchOnThreshold(0);
+	fb208SetDownSwitchOffThreshold		:	FB_DALI208SetDownSwitchOffThreshold(0);
+	fb208SetDownSwitchOnThreshold		:	FB_DALI208SetDownSwitchOnThreshold(0);
+	fb208SetUpSwitchOffThreshold		:	FB_DALI208SetUpSwitchOffThreshold(0);
+	fb208SetUpSwitchOnThreshold			:	FB_DALI208SetUpSwitchOnThreshold(0);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bRead AND (nStep = 0)) THEN
+	nStep := 5;
+	bRead := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWrite AND (nStep = 0)) THEN
+	nStep := 500;
+	bWrite := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+{region "Manage Dialog Selection}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bRead := FALSE;
+	bWrite := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb208QueryGearType.ipDALICommunication := ipDALICommunication;
+	fb208QueryFeatures.ipDALICommunication := ipDALICommunication;
+	fb208QuerySwitchStatus.ipDALICommunication := ipDALICommunication;
+	fb208QueryDownSwitchOffThreshold.ipDALICommunication := ipDALICommunication;
+	fb208QueryDownSwitchOnThreshold.ipDALICommunication := ipDALICommunication;
+	fb208QueryUpSwitchOffThreshold.ipDALICommunication := ipDALICommunication;
+	fb208QueryUpSwitchOnThreshold.ipDALICommunication := ipDALICommunication;
+	fb208SetDownSwitchOffThreshold.ipDALICommunication := ipDALICommunication;
+	fb208SetDownSwitchOnThreshold.ipDALICommunication := ipDALICommunication;
+	fb208SetUpSwitchOffThreshold.ipDALICommunication := ipDALICommunication;
+	fb208SetUpSwitchOnThreshold.ipDALICommunication := ipDALICommunication;
+{endregion}
+{region "Read"}
+5:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart := FALSE);
+		nStep := 10;
+	END_IF
+{endregion}
+10:
+{region "Query Gear Type"}
+	fb208QueryGearType(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						nGearType => nGearType);
+	IF (NOT fb208QueryGearType.bBusy) THEN
+		fb208QueryGearType(bStart := FALSE);
+		sGearType := GearType(nGearType := nGearType);
+		nStep := 20;
+	END_IF
+{endregion}
+20:
+{region "Query Features"}
+	fb208QueryFeatures(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb208QueryFeatures.bBusy) THEN
+		fb208QueryFeatures(bStart := FALSE);
+		bThreshold := fb208QueryFeatures.nFeatures.3;
+		bAddressingPhysical := fb208QueryFeatures.nFeatures.7;
+		nStep := 30;
+	END_IF
+{endregion}
+30:
+{region "Query Down Switch Off Threshold"}
+	fb208QueryDownSwitchOffThreshold(	bStart := TRUE,
+										nAddress := nAddress,
+										eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+										eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb208QueryDownSwitchOffThreshold.bBusy) THEN
+		fb208QueryDownSwitchOffThreshold(bStart := FALSE);
+		nDownSwitchOffThreshold := fb208QueryDownSwitchOffThreshold.nDownSwitchOffThreshold;
+		nStep := 40;
+	END_IF
+{endregion}
+40:
+{region "Query Down Switch On Threshold"}
+	fb208QueryDownSwitchOnThreshold(bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb208QueryDownSwitchOnThreshold.bBusy) THEN
+		fb208QueryDownSwitchOnThreshold(bStart := FALSE);
+		nDownSwitchOnThreshold := fb208QueryDownSwitchOnThreshold.nDownSwitchOnThreshold;
+		nStep := 50;
+	END_IF
+{endregion}
+50:
+{region "Query Up Switch Off Threshold"}
+	fb208QueryUpSwitchOffThreshold(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb208QueryUpSwitchOffThreshold.bBusy) THEN
+		fb208QueryUpSwitchOffThreshold(bStart := FALSE);
+		nUpSwitchOffThreshold := fb208QueryUpSwitchOffThreshold.nUpSwitchOffThreshold;
+		nStep := 60;
+	END_IF
+{endregion}
+60:
+{region "Query Up Switch On Threshold"}
+	fb208QueryUpSwitchOnThreshold(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb208QueryUpSwitchOnThreshold.bBusy) THEN
+		fb208QueryUpSwitchOnThreshold(bStart := FALSE);
+		nUpSwitchOnThreshold := fb208QueryUpSwitchOnThreshold.nUpSwitchOnThreshold;
+		nStep := 70;
+	END_IF
+{endregion}
+70:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(bStart:= FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{region "Write"}
+500:
+{region "Set Down Switch Off Threshold"}
+	fb208SetDownSwitchOffThreshold(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nDownSwitchOffThreshold := nDownSwitchOffThreshold);
+	IF (NOT fb208SetDownSwitchOffThreshold.bBusy) THEN
+		fb208SetDownSwitchOffThreshold(bStart := FALSE);
+		nStep := 510;
+	END_IF
+{endregion}
+510:
+{region "Set Down Switch On Threshold"}
+	fb208SetDownSwitchOnThreshold(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nDownSwitchOnThreshold := nDownSwitchOnThreshold);
+	IF (NOT fb208SetDownSwitchOnThreshold.bBusy) THEN
+		fb208SetDownSwitchOnThreshold(bStart := FALSE);
+		nStep := 520;
+	END_IF
+{endregion}
+520:
+{region "Set Up Switch Off Threshold"}
+	fb208SetUpSwitchOffThreshold(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nUpSwitchOffThreshold := nUpSwitchOffThreshold);
+	IF (NOT fb208SetUpSwitchOffThreshold.bBusy) THEN
+		fb208SetUpSwitchOffThreshold(bStart := FALSE);
+		nStep := 530;
+	END_IF
+{endregion}
+530:
+{region "Set Up Switch On Threshold"}
+	fb208SetUpSwitchOnThreshold(bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+								nUpSwitchOnThreshold := nUpSwitchOnThreshold);
+	IF (NOT fb208SetUpSwitchOnThreshold.bBusy) THEN
+		fb208SetUpSwitchOnThreshold(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+END_CASE
+{endregion}]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Part208Switching">
+      <LineId Id="20" Count="28" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="59" Count="6" />
+      <LineId Id="442" Count="3" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="73" Count="10" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="134" Count="3" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="183" Count="1" />
+      <LineId Id="181" Count="0" />
+      <LineId Id="194" Count="1" />
+      <LineId Id="356" Count="1" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="185" Count="1" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="198" Count="1" />
+      <LineId Id="395" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="187" Count="1" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="202" Count="1" />
+      <LineId Id="398" Count="0" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="189" Count="1" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="206" Count="1" />
+      <LineId Id="399" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="127" Count="2" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="191" Count="1" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="210" Count="1" />
+      <LineId Id="401" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="219" Count="1" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="225" Count="2" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="232" Count="1" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="304" Count="1" />
+      <LineId Id="279" Count="0" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="254" Count="2" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="306" Count="1" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="260" Count="2" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="240" Count="1" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="308" Count="1" />
+      <LineId Id="295" Count="0" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="263" Count="2" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="242" Count="1" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="310" Count="1" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="269" Count="2" />
+      <LineId Id="267" Count="0" />
+      <LineId Id="248" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="236" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

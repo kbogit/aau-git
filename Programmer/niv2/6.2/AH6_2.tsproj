@@ -1,0 +1,971 @@
+<?xml version="1.0"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4026.16" TcVersionFixed="true">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{9A955222-AEEB-8157-F0A3-131368033DED}" Namespace="Tc3_DALI" AutoDeleteType="true">ST_KL6821InData</Name>
+			<BitSize>48</BitSize>
+			<SubItem>
+				<Name>nStatus</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>aData</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>4</Elements>
+				</ArrayInfo>
+				<BitSize>32</BitSize>
+				<BitOffs>16</BitOffs>
+				<Properties>
+					<Property>
+						<Name>naming</Name>
+						<Value>off</Value>
+					</Property>
+				</Properties>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{30E5A974-58AB-1776-AC6D-3F2C3D82CCD4}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF Tc3_DALI.ST_KL6821InData</Name>
+			<BitSize>288</BitSize>
+			<BaseType GUID="{9A955222-AEEB-8157-F0A3-131368033DED}" Namespace="Tc3_DALI">ST_KL6821InData</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{3739F8DE-1262-CBDF-6036-BE7156A9772E}" Namespace="Tc2_EnOcean" AutoDeleteType="true">KL6581_Input</Name>
+			<BitSize>96</BitSize>
+			<SubItem>
+				<Name>nStatus</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>CNODE</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ORG</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>40</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>56</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>72</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>80</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>STATUS</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>88</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{C1BBA315-9EAB-EFD9-416A-6FE4EE9659A6}" Namespace="Tc3_DALI" AutoDeleteType="true">ST_KL6821OutData</Name>
+			<BitSize>48</BitSize>
+			<SubItem>
+				<Name>nCtrl</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000004}">WORD</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>aData</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>4</Elements>
+				</ArrayInfo>
+				<BitSize>32</BitSize>
+				<BitOffs>16</BitOffs>
+				<Properties>
+					<Property>
+						<Name>naming</Name>
+						<Value>off</Value>
+					</Property>
+				</Properties>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{1B85928A-10E8-CA47-AE1E-D30D3E918DF0}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..6] OF Tc3_DALI.ST_KL6821OutData</Name>
+			<BitSize>288</BitSize>
+			<BaseType GUID="{C1BBA315-9EAB-EFD9-416A-6FE4EE9659A6}" Namespace="Tc3_DALI">ST_KL6821OutData</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{6D7CDD9A-E11D-5A2E-4576-CC1041A72A79}" Namespace="Tc2_EnOcean" AutoDeleteType="true">KL6581_Output</Name>
+			<BitSize>96</BitSize>
+			<SubItem>
+				<Name>nControl</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>CNODE</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ORG</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>40</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>DB3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>56</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>72</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>ID3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>80</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>STATUS</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000001}">BYTE</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>88</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{18071995-0000-0000-0000-000000000041}" TcBaseType="true" HideSubItems="true" CName="AmsNetId">AMSNETID</Name>
+			<BitSize>48</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>6</Elements>
+			</ArrayInfo>
+			<Format>
+				<Printf>%d.%d.%d.%d.%d.%d</Printf>
+				<Parameter>[0]</Parameter>
+				<Parameter>[1]</Parameter>
+				<Parameter>[2]</Parameter>
+				<Parameter>[3]</Parameter>
+				<Parameter>[4]</Parameter>
+				<Parameter>[5]</Parameter>
+			</Format>
+		</DataType>
+		<DataType>
+			<Name GUID="{4FDEB313-7695-DF76-CD8D-AA5680BB32B3}" Namespace="Tc3_System_DK" AutoDeleteType="true">ST_EtherCAT_HW_IN</Name>
+			<BitSize>256</BitSize>
+			<SubItem>
+				<Name>AI_AmsNetId</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000041}">AMSNETID</Type>
+				<BitSize>48</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>AI_nDevState</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>AI_nCfgSlaveCount</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>AI_nSlaveCounts</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>80</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>AI_nFrmXWcState</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<ArrayInfo>
+					<LBound>0</LBound>
+					<Elements>10</Elements>
+				</ArrayInfo>
+				<BitSize>160</BitSize>
+				<BitOffs>96</BitOffs>
+			</SubItem>
+		</DataType>
+	</DataTypes>
+	<Project ProjectGUID="{6CD96795-6339-448F-A03F-BA86DB9971A9}" TargetNetId="5.163.219.118.1.1" Target64Bit="true" ShowHideConfigurations="#x3c7">
+		<System>
+			<Settings MaxCpus="2"/>
+			<Licenses>
+				<Target BkhfOrder="BADE-IN-01577983">
+					<ManualSelect>{6952449D-F68C-49A2-ADE4-8639D85B33A4}</ManualSelect>
+				</Target>
+			</Licenses>
+			<Tasks>
+				<Task Id="3" Priority="21" CycleTime="400000" AmsPort="350" AdtTasks="true">
+					<Name>PlcTask</Name>
+				</Task>
+				<Task Id="4" Priority="20" CycleTime="40000" AmsPort="351" AdtTasks="true">
+					<Name>FastTask</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project GUID="{7905390F-CC88-40E0-9B40-12F8CD5131BC}" Name="PLC1" PrjFilePath="PLC1\PLC1.plcproj" TmcFilePath="PLC1\PLC1.tmc" ReloadTmc="true" AmsPort="851" TargetArchiveSettings="#x000f" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{6A2112B0-C974-0A69-BBCA-2F24D38BAC35}" TmcPath="PLC1\PLC1.tmc">
+					<Name>PLC1 Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Vars VarGrpType="1" ContextId="1" AreaNo="16">
+						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>MAIN.nCX8200_State</Name>
+							<Type>UINT</Type>
+						</Var>
+						<Var>
+							<Name>P_SystemDK.fbEtherCAT_Diag01.stIN</Name>
+							<Type GUID="{4FDEB313-7695-DF76-CD8D-AA5680BB32B3}" Namespace="Tc3_System_DK">ST_EtherCAT_HW_IN</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="2" AreaNo="1">
+						<Name>FastTask Outputs</Name>
+						<Var>
+							<Name>P_DALI_Background.arrKL6821OutData</Name>
+							<Type GUID="{1B85928A-10E8-CA47-AE1E-D30D3E918DF0}">ARRAY [1..6] OF Tc3_DALI.ST_KL6821OutData</Type>
+						</Var>
+						<Var>
+							<Name>P_EnOcean.stKL6581_out</Name>
+							<Type GUID="{6D7CDD9A-E11D-5A2E-4576-CC1041A72A79}" Namespace="Tc2_EnOcean">KL6581_Output</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="1">
+						<Name>FastTask Inputs</Name>
+						<Var>
+							<Name>P_DALI_Background.arrKL6821InData</Name>
+							<Type GUID="{30E5A974-58AB-1776-AC6D-3F2C3D82CCD4}">ARRAY [1..6] OF Tc3_DALI.ST_KL6821InData</Type>
+						</Var>
+						<Var>
+							<Name>P_EnOcean.stKL6581_in</Name>
+							<Type GUID="{3739F8DE-1262-CBDF-6036-BE7156A9772E}" Namespace="Tc2_EnOcean">KL6581_Input</Type>
+						</Var>
+					</Vars>
+					<UnrestoredVarLinks ImportTime="2025-07-14T15:14:44">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC1^PLC1 Instance" Type="1">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="P_Trappe.bDigInTest" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Term 2 (KL1408)^Channel 1^Input" Size="1" RestoreInfo="BNotFound"/>
+							</OwnerB>
+						</OwnerA>
+						<OwnerA Name="OutputSrc" Prefix="TIPC^PLC1^PLC1 Instance" Type="2">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="P_Trappe.bDigOutTest" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Term 3 (KL2012)^Channel 2^Output" Size="1" RestoreInfo="BNotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2025-07-22T14:56:48">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC1^PLC1 Instance" Type="1">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="P_Trappe.bDigInTest" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Term 4 (KL1408)^Channel 1^Input" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2025-07-23T11:51:29">
+						<OwnerA Name="OutputSrc" Prefix="TIPC^PLC1^PLC1 Instance" Type="2">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="P_Trappe.bTrappelys" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Term 2 (KL2012)^Channel 1^Output" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2025-07-23T22:55:07">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC1^PLC1 Instance" Type="1">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="GVL_AHDataModbus.CX8200_State" TypeA="UINT" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000005}" VarB="Inputs^State" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2025-07-25T14:44:27">
+						<OwnerA Name="InputDst" Prefix="TIPC^PLC1^PLC1 Instance" Type="1">
+							<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+								<Link VarA="P_Trappe.bDigitalPir" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Term 3 (KL1408)^Channel 1^Input" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<Contexts>
+						<Context>
+							<Id>0</Id>
+							<Name>FastTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010040</OTCID>
+							</ManualConfig>
+							<Priority>20</Priority>
+							<CycleTime>4000000</CycleTime>
+						</Context>
+						<Context>
+							<Id>1</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010030</OTCID>
+							</ManualConfig>
+							<Priority>21</Priority>
+							<CycleTime>40000000</CycleTime>
+						</Context>
+					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="20" OTCID="#x08502002"/>
+						<TaskPouOid Prio="21" OTCID="#x08502001"/>
+					</TaskPouOids>
+				</Instance>
+			</Project>
+		</Plc>
+		<Io>
+			<Device Id="1" DevType="124" DevFlags="#x0004">
+				<Name>Device 1 (Beckhoff CCAT)</Name>
+				<ImageId>230</ImageId>
+				<AddressInfo>
+					<Pci>
+						<Address>-1610612736</Address>
+						<Size>0</Size>
+						<BusNo>65535</BusNo>
+						<SlotNo>0</SlotNo>
+					</Pci>
+				</AddressInfo>
+				<CCat>
+					<Slot Id="#x03010011">
+						<Name>Slot 5 (GPIO)</Name>
+						<ImageId>231</ImageId>
+						<CCatSlot SlotType="0d0000000a0000000003000020000000" SlotName="Slot 5 (GPIO)" SlotNo="5"/>
+					</Slot>
+					<Slot Id="#x03010012">
+						<Name>Slot 6 (System Time)</Name>
+						<ImageId>231</ImageId>
+						<CCatSlot SlotType="10000000000000000004000080000000" SlotName="Slot 6 (System Time)" MacOids="1300010300000000000000000000000000000000000000000000000000000000" SlotNo="6"/>
+					</Slot>
+					<Slot Id="#x03010014">
+						<Name>Slot 11 (EEPROM)</Name>
+						<ImageId>231</ImageId>
+						<CCatSlot SlotType="12000000000000000002000080000000" SlotName="Slot 11 (EEPROM)" SlotNo="11"/>
+					</Slot>
+				</CCat>
+			</Device>
+			<Device Id="3" DevType="120">
+				<Name>Device 3 (CX-BK)</Name>
+				<DevData>000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000007000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</DevData>
+				<Image Id="3" AddrType="1" ImageType="3" SizeIn="40" SizeOut="40">
+					<Name>Image</Name>
+				</Image>
+				<Box Id="1" BoxType="9703" AmsPort="28928">
+					<Name>Box 1 (CX-BK)</Name>
+					<ImageId>5</ImageId>
+					<Vars VarGrpType="1">
+						<Name>Inputs</Name>
+						<Var>
+							<Name>State</Name>
+							<Comment><![CDATA[Bit 0 = K-Bus Err
+Bit 1 = Terminal State Err
+Bit 2 = Process Data Length Err
+Bit 7 = K-Bus invalid
+Bit 8 = No valid Inputs
+Bit 9 = K-Bus Input Update busy
+Bit 10 = K-Bus Output Update busy
+Bit 11 = Watchdog Err
+Bit 15 = Acyc. Function atcive (e.g. K-Bus Reset)
+]]></Comment>
+							<Type>UINT</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="2">
+						<Name>Outputs</Name>
+						<Var>
+							<Name>Ctrl</Name>
+							<Type>UINT</Type>
+						</Var>
+					</Vars>
+					<BusCoupler ComplexTermSupport="true" NewHardware="true">
+						<Term Id="2" TermType="#x20019b5" Fieldbus="6">
+							<Name>Term 2 (KL6581)</Name>
+							<ImageId>32</ImageId>
+							<Vars VarGrpType="3">
+								<Name>Channel 1</Name>
+								<Var>
+									<Name>Status</Name>
+									<Type>USINT</Type>
+									<BitOffs>32</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input CNODE</Name>
+									<Type>USINT</Type>
+									<BitOffs>40</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input ORG</Name>
+									<Type>USINT</Type>
+									<BitOffs>48</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input DB0</Name>
+									<Type>USINT</Type>
+									<BitOffs>56</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input DB1</Name>
+									<Type>USINT</Type>
+									<BitOffs>64</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input DB2</Name>
+									<Type>USINT</Type>
+									<BitOffs>72</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input DB3</Name>
+									<Type>USINT</Type>
+									<BitOffs>80</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input ID0</Name>
+									<Type>USINT</Type>
+									<BitOffs>88</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input ID1</Name>
+									<Type>USINT</Type>
+									<BitOffs>96</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input ID2</Name>
+									<Type>USINT</Type>
+									<BitOffs>104</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input ID3</Name>
+									<Type>USINT</Type>
+									<BitOffs>112</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Input STATUS</Name>
+									<Type>USINT</Type>
+									<BitOffs>120</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Control</Name>
+									<Type>USINT</Type>
+									<BitOffs>32</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output CNODE</Name>
+									<Type>USINT</Type>
+									<BitOffs>40</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output ORG</Name>
+									<Type>USINT</Type>
+									<BitOffs>48</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output DB0</Name>
+									<Type>USINT</Type>
+									<BitOffs>56</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output DB1</Name>
+									<Type>USINT</Type>
+									<BitOffs>64</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output DB2</Name>
+									<Type>USINT</Type>
+									<BitOffs>72</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output DB3</Name>
+									<Type>USINT</Type>
+									<BitOffs>80</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output ID0</Name>
+									<Type>USINT</Type>
+									<BitOffs>88</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output ID1</Name>
+									<Type>USINT</Type>
+									<BitOffs>96</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output ID2</Name>
+									<Type>USINT</Type>
+									<BitOffs>104</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output ID3</Name>
+									<Type>USINT</Type>
+									<BitOffs>112</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Output STATUS</Name>
+									<Type>USINT</Type>
+									<BitOffs>120</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+							</Vars>
+						</Term>
+						<Term Id="3" TermType="#x1aa5" Fieldbus="6">
+							<Name>Term 3 (KL6821)</Name>
+							<ImageId>32</ImageId>
+							<Vars VarGrpType="3">
+								<Name>Channel 1</Name>
+								<Var>
+									<Name>State</Name>
+									<Type>UINT</Type>
+									<BitOffs>128</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>144</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>152</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>160</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>168</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Ctrl</Name>
+									<Type>UINT</Type>
+									<BitOffs>128</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>144</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>152</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>160</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>168</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+							</Vars>
+						</Term>
+						<Term Id="4" TermType="#x1aa5" Fieldbus="6">
+							<Name>Term 4 (KL6821)</Name>
+							<ImageId>32</ImageId>
+							<Vars VarGrpType="3">
+								<Name>Channel 1</Name>
+								<Var>
+									<Name>State</Name>
+									<Type>UINT</Type>
+									<BitOffs>176</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>192</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>200</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>208</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>216</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Ctrl</Name>
+									<Type>UINT</Type>
+									<BitOffs>176</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>192</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>200</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>208</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>216</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+							</Vars>
+						</Term>
+						<Term Id="5" TermType="#x1aa5" Fieldbus="6">
+							<Name>Term 5 (KL6821)</Name>
+							<ImageId>32</ImageId>
+							<Vars VarGrpType="3">
+								<Name>Channel 1</Name>
+								<Var>
+									<Name>State</Name>
+									<Type>UINT</Type>
+									<BitOffs>224</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>240</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>248</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>256</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>264</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Ctrl</Name>
+									<Type>UINT</Type>
+									<BitOffs>224</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>240</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>248</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>256</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>264</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+							</Vars>
+						</Term>
+						<Term Id="6" TermType="#x1aa5" Fieldbus="6">
+							<Name>Term 6 (KL6821)</Name>
+							<ImageId>32</ImageId>
+							<Vars VarGrpType="3">
+								<Name>Channel 1</Name>
+								<Var>
+									<Name>State</Name>
+									<Type>UINT</Type>
+									<BitOffs>272</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>288</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>296</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>304</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Data In 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>312</BitOffs>
+									<InOut>0</InOut>
+								</Var>
+								<Var>
+									<Name>Ctrl</Name>
+									<Type>UINT</Type>
+									<BitOffs>272</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 0</Name>
+									<Type>USINT</Type>
+									<BitOffs>288</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 1</Name>
+									<Type>USINT</Type>
+									<BitOffs>296</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 2</Name>
+									<Type>USINT</Type>
+									<BitOffs>304</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+								<Var>
+									<Name>Data Out 3</Name>
+									<Type>USINT</Type>
+									<BitOffs>312</BitOffs>
+									<InOut>1</InOut>
+								</Var>
+							</Vars>
+						</Term>
+						<Term Id="1" TermType="#x2332" Fieldbus="6">
+							<Name>End Term (KL9010)</Name>
+							<ImageId>32</ImageId>
+						</Term>
+					</BusCoupler>
+					<CxBk/>
+				</Box>
+			</Device>
+		</Io>
+	</Project>
+	<Mappings>
+		<MappingInfo Identifier="{00000000-2002-0850-0020-500830000403}" Id="#x02030010"/>
+		<MappingInfo Identifier="{08502001-0030-0304-0020-500830000403}" Id="#x02030020" Watchdog="00000000000000000000000000000000"/>
+		<OwnerA Name="TIPC^PLC1^PLC1 Instance">
+			<OwnerB Name="TIID^Device 3 (CX-BK)^Box 1 (CX-BK)">
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[1]" VarB="Term 3 (KL6821)^Channel 1^Data In 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[1]" VarB="Term 3 (KL6821)^Channel 1^Data In 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[1]" VarB="Term 3 (KL6821)^Channel 1^Data In 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[1]" VarB="Term 3 (KL6821)^Channel 1^Data In 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[1]" VarB="Term 3 (KL6821)^Channel 1^State"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[2]" VarB="Term 4 (KL6821)^Channel 1^Data In 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[2]" VarB="Term 4 (KL6821)^Channel 1^Data In 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[2]" VarB="Term 4 (KL6821)^Channel 1^Data In 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[2]" VarB="Term 4 (KL6821)^Channel 1^Data In 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[2]" VarB="Term 4 (KL6821)^Channel 1^State"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[3]" VarB="Term 5 (KL6821)^Channel 1^Data In 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[3]" VarB="Term 5 (KL6821)^Channel 1^Data In 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[3]" VarB="Term 5 (KL6821)^Channel 1^Data In 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[3]" VarB="Term 5 (KL6821)^Channel 1^Data In 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[3]" VarB="Term 5 (KL6821)^Channel 1^State"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[4]" VarB="Term 6 (KL6821)^Channel 1^Data In 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[4]" VarB="Term 6 (KL6821)^Channel 1^Data In 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[4]" VarB="Term 6 (KL6821)^Channel 1^Data In 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[4]" VarB="Term 6 (KL6821)^Channel 1^Data In 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Inputs^P_DALI_Background.arrKL6821InData[4]" VarB="Term 6 (KL6821)^Channel 1^State"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input CNODE" Size="8" OffsA="8"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input DB0" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input DB1" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input DB2" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input DB3" Size="8" OffsA="48"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input ID0" Size="8" OffsA="56"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input ID1" Size="8" OffsA="64"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input ID2" Size="8" OffsA="72"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input ID3" Size="8" OffsA="80"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input ORG" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Input STATUS" Size="8" OffsA="88"/>
+				<Link VarA="FastTask Inputs^P_EnOcean.stKL6581_in" VarB="Term 2 (KL6581)^Channel 1^Status"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[1]" VarB="Term 3 (KL6821)^Channel 1^Ctrl"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[1]" VarB="Term 3 (KL6821)^Channel 1^Data Out 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[1]" VarB="Term 3 (KL6821)^Channel 1^Data Out 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[1]" VarB="Term 3 (KL6821)^Channel 1^Data Out 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[1]" VarB="Term 3 (KL6821)^Channel 1^Data Out 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[2]" VarB="Term 4 (KL6821)^Channel 1^Ctrl"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[2]" VarB="Term 4 (KL6821)^Channel 1^Data Out 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[2]" VarB="Term 4 (KL6821)^Channel 1^Data Out 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[2]" VarB="Term 4 (KL6821)^Channel 1^Data Out 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[2]" VarB="Term 4 (KL6821)^Channel 1^Data Out 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[3]" VarB="Term 5 (KL6821)^Channel 1^Ctrl"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[3]" VarB="Term 5 (KL6821)^Channel 1^Data Out 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[3]" VarB="Term 5 (KL6821)^Channel 1^Data Out 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[3]" VarB="Term 5 (KL6821)^Channel 1^Data Out 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[3]" VarB="Term 5 (KL6821)^Channel 1^Data Out 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[4]" VarB="Term 6 (KL6821)^Channel 1^Ctrl"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[4]" VarB="Term 6 (KL6821)^Channel 1^Data Out 0" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[4]" VarB="Term 6 (KL6821)^Channel 1^Data Out 1" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[4]" VarB="Term 6 (KL6821)^Channel 1^Data Out 2" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Outputs^P_DALI_Background.arrKL6821OutData[4]" VarB="Term 6 (KL6821)^Channel 1^Data Out 3" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Control"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output CNODE" Size="8" OffsA="8"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output DB0" Size="8" OffsA="24"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output DB1" Size="8" OffsA="32"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output DB2" Size="8" OffsA="40"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output DB3" Size="8" OffsA="48"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output ID0" Size="8" OffsA="56"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output ID1" Size="8" OffsA="64"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output ID2" Size="8" OffsA="72"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output ID3" Size="8" OffsA="80"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output ORG" Size="8" OffsA="16"/>
+				<Link VarA="FastTask Outputs^P_EnOcean.stKL6581_out" VarB="Term 2 (KL6581)^Channel 1^Output STATUS" Size="8" OffsA="88"/>
+				<Link VarA="PlcTask Inputs^MAIN.nCX8200_State" VarB="Inputs^State"/>
+			</OwnerB>
+		</OwnerA>
+	</Mappings>
+</TcSmProject>

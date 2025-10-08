@@ -1,0 +1,379 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_Part207LED" Id="{ba0e7218-8cca-4673-b7ed-43d1178c63f2}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part207LED
+VAR_INPUT
+	ipDALICommunication											:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy														:	BOOL;
+END_VAR
+VAR
+{region "Visu"}
+	bReadStatus													:	BOOL;
+	bReadParameter												:	BOOL;
+	bWrite														:	BOOL;
+	sShortCircuit												:	STRING(5);
+	sOpenCircuit												:	STRING(5);
+	sLoadDecrease												:	STRING(5);
+	sLoadIncrease												:	STRING(5);
+	sPWMOperation												:	STRING(5);
+	sAMOperation												:	STRING(5);
+	sOutputCurrentControlled									:	STRING(5);
+	sPowerPulseOperation										:	STRING(5);
+	sCurrentProtectorEnabled									:	STRING(5);
+	sCurrentProtectorActive										:	STRING(5);
+	sThermalShutDown											:	STRING(5);
+	sThermalOverload											:	STRING(5);
+	sReferenceMeasurementFailed									:	STRING(5);
+	bCurrentProtector											:	BOOL;
+	bReferenceSystemPower										:	BOOL;
+	eDimmingCurve												:	TC3_DALI.E_DALIDimmingCurve;
+	eFastFadeTime												:	TC3_DALI.E_DALIFastFadeTime;
+
+	nExtendedVersionNumber										:	BYTE;
+{endregion}
+	nStep														:	INT;
+	nAddress													:	BYTE;
+	bHideWaitSymbol												:	BOOL := TRUE;
+	bInvisible													:	BOOL := TRUE; // Variable to hide Parameters which are currently not covered by certified device types.
+	nFeatures													:	BYTE;
+	nControlGearType											:	BYTE;
+	bQueryShortCircuitEnabled									:	BOOL;
+	bQueryIdleTimeDetectionEnabled								:	BOOL;
+	bQueryLoadDecreaseEnabled									:	BOOL;
+	bQueryLoadIncreaseEnabled									:	BOOL;
+	bQueryCurrentProtectionDevicePresent						:	BOOL;
+	bQueryThermalSwitchEnabled									:	BOOL;
+	bQueryReductionOfLuminouFluxRegardingThermalOverloadEnabled	:	BOOL;
+	bPhysicalSelectionSupported									:	BOOL;
+	bLEDPowerSupply												:	BOOL;
+	bLEDModule													:	BOOL;
+	bACSupply													:	BOOL;
+	bDCSupply													:	BOOL;
+	bPWMOperation												:	BOOL;
+	bAMOperation												:	BOOL;
+	bOutputCurrentControlled									:	BOOL;
+	bPowerPulseOperation										:	BOOL;
+
+
+	fb103StartQuiescentMode										:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode										:	FB_DALI103StopQuiescentMode(0);
+	fb207QueryDimmingCurve 										:	FB_DALI207QueryDimmingCurve(0);
+	fb207QueryFastFadeTime 										:	FB_DALI207QueryFastFadeTime(0);
+	fb207QueryLoadDecrease 										:	FB_DALI207QueryLoadDecrease(0);
+	fb207QueryLoadIncrease 										:	FB_DALI207QueryLoadIncrease(0);	
+	fb253QueryOpenCircuit 										:	FB_DALI253QueryLightSourceOpenCircuit(0);
+	fb207QueryReferenceMeasurementFailed						:	FB_DALI207QueryReferenceMeasurementFailed(0);
+	fb253QueryShortCircuit										:	FB_DALI253QueryLightSourceShortCircuit(0);
+	fb207QueryThermalOverload									:	FB_DALI207QueryThermalOverload(0);
+	fb253QueryThermalShutDown									:	FB_DALI253QueryLightSourceThermalShutDown(0);
+	fb102QueryExtendedVersionNumber								:	FB_DALI102QueryExtendedVersionNumber(0);
+	fb207ReferenceSystemPower									:	FB_DALI207ReferenceSystemPower(0);
+	fb207SelectDimmingCurve										:	FB_DALI207SelectDimmingCurve(0);
+	fb207SetFastFadeTime										:	FB_DALI207SetFastFadeTime(0);
+	fb207QueryFeatures											:	FB_DALI207QueryFeatures(0);
+	fb207QueryControlGearType									:	FB_DALI207QueryControlGearType(0);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bReadStatus AND (nStep = 0)) THEN
+	nStep := 5;
+	bReadStatus := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bReadParameter AND (nStep = 0)) THEN
+	nStep := 200;
+	bReadParameter := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bReferenceSystemPower AND (nStep = 0)) THEN
+	nStep := 1000;
+	bReferenceSystemPower := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWrite AND (nStep = 0)) THEN
+	nStep := 1030;
+	bWrite := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+{region "Manage Dialog Selection}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bReadStatus := FALSE;
+	bReadParameter := FALSE;
+	bWrite := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb253QueryShortCircuit.ipDALICommunication := ipDALICommunication;
+	fb253QueryOpenCircuit.ipDALICommunication := ipDALICommunication;
+	fb207QueryLoadDecrease.ipDALICommunication := ipDALICommunication;
+	fb207QueryLoadIncrease.ipDALICommunication := ipDALICommunication;
+	fb253QueryThermalShutDown.ipDALICommunication := ipDALICommunication;
+	fb207QueryThermalOverload.ipDALICommunication := ipDALICommunication;
+	fb207QueryReferenceMeasurementFailed.ipDALICommunication := ipDALICommunication;
+	fb207QueryDimmingCurve.ipDALICommunication := ipDALICommunication;
+	fb207QueryFastFadeTime.ipDALICommunication := ipDALICommunication;
+	fb102QueryExtendedVersionNumber.ipDALICommunication := ipDALICommunication;
+	fb207ReferenceSystemPower.ipDALICommunication := ipDALICommunication;
+	fb207SelectDimmingCurve.ipDALICommunication := ipDALICommunication;
+	fb207SetFastFadeTime.ipDALICommunication := ipDALICommunication;
+	fb207QueryFeatures.ipDALICommunication := ipDALICommunication;
+	fb207QueryControlGearType.ipDALICommunication := ipDALICommunication;
+{endregion}
+{region "Read Status}
+5:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart:= FALSE);
+		nStep := 10;
+	END_IF
+{endregion}
+10:
+{region "Query Short Circuit"}
+	fb253QueryShortCircuit(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb253QueryShortCircuit.bBusy) THEN
+		fb253QueryShortCircuit(bStart := FALSE);
+		sShortCircuit := SEL(fb253QueryShortCircuit.bLightSourceShortCircuit, 'No', 'Yes');
+		nStep := 20;
+	END_IF
+{endregion}
+20:
+{region "Query Open Circuit"}
+	fb253QueryOpenCircuit(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb253QueryOpenCircuit.bBusy) THEN
+		fb253QueryOpenCircuit(bStart := FALSE);
+		sOpenCircuit := SEL(fb253QueryOpenCircuit.bLightSourceOpenCircuit, 'No', 'Yes');
+		nStep := 30;
+	END_IF
+{endregion}
+30:
+{region "Query Load Decrease"}
+	fb207QueryLoadDecrease(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb207QueryLoadDecrease.bBusy) THEN
+		fb207QueryLoadDecrease(bStart := FALSE);
+		sLoadDecrease := SEL(fb207QueryLoadDecrease.bLoadDecrease, 'No', 'Yes');
+		nStep := 40;
+	END_IF
+{endregion}
+40:
+{region "Query Load Increase"}
+	fb207QueryLoadIncrease(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb207QueryLoadIncrease.bBusy) THEN
+		fb207QueryLoadIncrease(bStart := FALSE);
+		sLoadIncrease := SEL(fb207QueryLoadIncrease.bLoadIncrease, 'No', 'Yes');
+		nStep := 80;
+	END_IF
+{endregion}
+80:
+{region "Query Thermal Shut Down"}
+	fb253QueryThermalShutDown(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb253QueryThermalShutDown.bBusy) THEN
+		fb253QueryThermalShutDown(bStart := FALSE);
+		sThermalShutDown := SEL(fb253QueryThermalShutDown.bLightSourceThermalShutdown, 'No', 'Yes');
+		nStep := 90;
+	END_IF
+{endregion}
+90:
+{region "Query Thermal Overload"}
+	fb207QueryThermalOverload(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb207QueryThermalOverload.bBusy) THEN
+		fb207QueryThermalOverload(bStart := FALSE);
+		sThermalOverload := SEL(fb207QueryThermalOverload.bThermalOverload, 'No', 'Yes');
+		nStep := 100;
+	END_IF
+{endregion}
+100:
+{region "Query Reference Measurement Failed"}
+	fb207QueryReferenceMeasurementFailed(	bStart := TRUE,
+											nAddress := nAddress,
+											eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+											eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb207QueryReferenceMeasurementFailed.bBusy) THEN
+		fb207QueryReferenceMeasurementFailed(bStart := FALSE);
+		sReferenceMeasurementFailed := SEL(fb207QueryReferenceMeasurementFailed.bReferenceMeasurementFailed, 'No', 'Yes');
+		nStep := 110;
+	END_IF
+{endregion}
+110:
+{region "Query Dimming Curve"}
+	fb207QueryDimmingCurve(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eDimmingCurve => eDimmingCurve);
+	IF (NOT fb207QueryDimmingCurve.bBusy) THEN
+		fb207QueryDimmingCurve(bStart := FALSE);
+		nStep := 120;
+	END_IF
+{endregion}
+120:
+{region "Query Fast Fade Time"}
+	fb207QueryFastFadeTime(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eFastFadeTime => eFastFadeTime);
+	IF (NOT fb207QueryFastFadeTime.bBusy) THEN
+		fb207QueryFastFadeTime(bStart := FALSE);
+		nStep := 130;
+	END_IF
+{endregion}
+130:
+{region "Query Extended Version Number"}
+	fb102QueryExtendedVersionNumber(bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									eDeviceType := E_DALIDeviceType.DT06LEDModule,
+									nExtendedVersionNumber => nExtendedVersionNumber);
+	IF (NOT fb102QueryExtendedVersionNumber.bBusy) THEN
+		fb102QueryExtendedVersionNumber(bStart := FALSE);
+		nStep := 135;
+	END_IF
+{endregion}
+135:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(	bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+
+{region "Read Parameter"}
+200:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart:= FALSE);
+		nStep := 210;
+	END_IF
+{endregion}
+210:
+{region "Query Features"}
+	fb207QueryFeatures(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						nFeatures => nFeatures);
+
+	IF (NOT fb207QueryFeatures.bBusy) THEN
+		fb207QueryFeatures(bStart := FALSE);
+		bQueryShortCircuitEnabled := nFeatures.0;
+		bQueryIdleTimeDetectionEnabled := nFeatures.1;
+		bQueryLoadDecreaseEnabled := nFeatures.2;
+		bQueryLoadIncreaseEnabled := nFeatures.3;
+		bQueryCurrentProtectionDevicePresent := nFeatures.4;
+		bQueryThermalSwitchEnabled := nFeatures.5;
+		bQueryReductionOfLuminouFluxRegardingThermalOverloadEnabled := nFeatures.6;
+		bPhysicalSelectionSupported := nFeatures.7;
+		nStep := 215;
+	END_IF
+{endregion}
+215:
+{region "Query control Gear Type"}
+	fb207QueryControlGearType(	bStart := TRUE, 
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+								nControlGearType => nControlGearType);
+	IF (NOT fb207QueryControlGearType.bBusy) THEN
+		fb207QueryControlGearType(bStart := FALSE);
+		bLEDModule	:= nControlGearType.1;
+		nStep := 220;
+	END_IF
+{endregion}
+220:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(	bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+
+{region "Write"}
+1000:
+{region "Reference System Power"}
+	fb207ReferenceSystemPower(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb207ReferenceSystemPower.bBusy) THEN
+		fb207ReferenceSystemPower(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+1030:
+{region "Select Dimming Curve"}
+	fb207SelectDimmingCurve(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eDimmingCurve := eDimmingCurve);
+	IF (NOT fb207SelectDimmingCurve.bBusy) THEN
+		fb207SelectDimmingCurve(bStart := FALSE);
+		nStep := 1040;
+	END_IF
+{endregion}
+1040:
+{region "Set Fast Fade Time"}
+	fb207SetFastFadeTime(bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						eFastFadeTime := eFastFadeTime);
+	IF (NOT fb207SetFastFadeTime.bBusy) THEN
+		fb207SetFastFadeTime(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+END_CASE]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

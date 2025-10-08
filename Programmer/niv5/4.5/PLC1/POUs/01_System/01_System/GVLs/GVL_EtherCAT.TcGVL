@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.18">
+  <GVL Name="GVL_EtherCAT" Id="{53163636-b0de-4c41-a6af-66a5c7afb260}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	stEtherCAT_Device1: ST_EtherCAT_HW_Diag;		// EtherCAT status
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>

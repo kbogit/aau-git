@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_Skalering" Id="{1664843d-b36b-4112-92ee-31d35176b0d6}">
+    <Declaration><![CDATA[//{attribute 'qualified_only'}
+VAR_GLOBAL
+fMeassure_Zone1 :REAL:= 604; 
+fRead_Zone1     :REAL:= 340;
+
+fMeassure_Zone2 :REAL:=611;
+fRead_Zone2     :REAL:=374;
+
+fMeassure_Zone3 :REAL:=986;
+fRead_Zone3     :REAL:=524;
+
+fMeassure_Zone4 :REAL:=770;
+fRead_Zone4     :REAL:=506;
+
+fMeassure_Zone5 :REAL:=734;
+fRead_Zone5     :REAL:=395;
+
+fMeassure_Zone6 :REAL:=890;
+fRead_Zone6     :REAL:=476;
+
+fMeassure_Zone7 :REAL:=710;
+fRead_Zone7     :REAL:=654;
+
+fMeassure_Zone8 :REAL:=604;
+fRead_Zone8     :REAL:=292;
+
+fMeassure_Zone9 :REAL:=572;
+fRead_Zone9     :REAL:=348;
+
+fMeassure_Zone10:REAL:= 790;
+fRead_Zone10    :REAL:=434;
+
+fMeassure_Zone11 :REAL:=691;
+fRead_Zone11     :REAL:=426;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

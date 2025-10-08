@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_EnOcean" Id="{bec68ff9-8f1d-4ce1-b8b9-84de691aacc9}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	strEnOceanSwitch_Gang_1_108: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_1_106: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_1_111E: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_1_115_Gang: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_1_115_Ydermur: Tc2_EnOcean.STR_EnOceanSwitch;
+	strEnOceanSwitch_Rum_1_118: Tc2_EnOcean.STR_EnOceanSwitch;
+	//strEnOceanSwitch_Rum_1_118: Tc2_EnOcean.STR_EnOceanSwitch;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

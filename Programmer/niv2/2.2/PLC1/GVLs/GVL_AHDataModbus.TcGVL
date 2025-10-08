@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_AHDataModbus" Id="{f5902466-9696-4cef-8487-6320c343acc6}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'qualified_only'}
+VAR_GLOBAL
+//AH pir data out
+	nAH_NeighborRoomsPir_Out			AT %MB600		: UINT;
+	
+	//AH pir data in
+	arrAH_NeighborRoomsPir_In									: ARRAY[1..byNumberOfAH_Neighbors] OF UINT;
+	arrAH_NeighborRoomsPir										: ARRAY[1..byNumberOfAH_Neighbors] OF ARRAY[0..15] OF BOOL;
+	
+	//Schneider data out
+	nCX8200_State_MB						AT %MB1000	: UINT;
+	arrFB_DALIDiagErrorId				(*AT %MW1002*)	: ARRAY[1..SH_Light.DALI_Param.MAX_DALIV2_LINES] OF UDINT;
+	arrKL6821InDataStatus					AT %MB1014	: ARRAY[1..SH_Light.DALI_Param.MAX_DALIV2_LINES] OF WORD;
+	arrDALILineShrtAddrErr				AT %MB1026	: ARRAY[1..SH_Light.DALI_Param.MAX_DALIV2_LINES] OF UINT;
+	EnOceanError								AT %MB1038	: UINT;
+	nTotalEnergy10kWh							AT %MB1040	: UINT;
+	nMaxControlGearOperatingHours	AT %MB1042	: UINT;
+		uiPirOffDelayTimeAllRooms_MB   AT %MB1044   : UINT := 30;
+END_VAR
+
+VAR_GLOBAL CONSTANT
+	byNumberOfAH_Neighbors									: BYTE :=25;
+END_VAR
+
+(*
+AH1-2 pirsignaler = arrAH_NeighborRoomsPir[1][]
+	---------- KOPI fra A_AHNeighborRoomsPirOut i AH1-2 ----------
+	
+*)
+
+(*
+AH3-2 pirsignaler = arrAH_NeighborRoomsPir[2]
+	---------- KOPI fra A_AHNeighborRoomsPirOut i AH3-2 ----------
+	GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.0 := P_Gang_2_244.bPirActive_MB;
+	GVL_AHDataModbus.nAH_NeighborRoomsPir_Out.1 := P_Gang_3_109.bPirActive_MB;		
+*)
+
+(*
+AH5-2 pirsignaler = arrAH_NeighborRoomsPir[3][]
+	---------- KOPI fra A_AHNeighborRoomsPirOut i AH5-2 ----------
+	
+*)]]></Declaration>
+  </GVL>
+</TcPlcObject>

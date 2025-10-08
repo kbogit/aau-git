@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI_Energy_Line2" Id="{93fae041-cb0d-4c1a-93c7-abaec0881fb9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DALI_Energy_Line2
+VAR
+	fbDALI_EnergyReporting: FB_DALI_EnergyReporting_Test;
+	bReadEnergyData: BOOL;
+	bCheckActiveEnergy	: BOOL;
+END_VAR
+
+VAR CONSTANT
+	DALI_LINE_NUM: BYTE := 2;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbDALI_EnergyReporting.ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[DALI_LINE_NUM];
+
+fbDALI_EnergyReporting(
+	bExecute:= bReadEnergyData, 
+	DALI_LINE_NUM:= DALI_LINE_NUM ,
+	bCheckActiveEnergy := bCheckActiveEnergy,
+	bBusy=> , 
+	bActionBusy=> , 
+	bErr=> , 
+	nErrorId=> );]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

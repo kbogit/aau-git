@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="P_SystemDK" Id="{0683f5e1-ccee-47e9-a493-26f720a719f2}" SpecialFunc="None">
+    <Declaration><![CDATA[//------------------------------------------------------------------------------------------
+//                                                                                        	
+//***************************** Beckhoff TwinCAT Examples **********************************
+//                                                                                        	
+//************************************* WARNING ********************************************
+// This program is only an example. If it is used as a control program in any real        	
+// application, Beckhoff is not responsible for any malfunction, loss or damage           	
+// which could arise by using this program!                                               	
+//                                                                                        	
+//*************************************  Program Info. *************************************
+//                                                                                        	
+// PLC program name:       	P_SystemDK (FB)               	                           	
+// Software platform:      	TwinCat v3.1.4022.30				                          	
+// Modified by:            	Hans Chr. Pallesen 			                                  	
+// Email:					h.pallesen@beckhoff.com	                                  	
+//                                                                                        	
+// ======================================================================================== 
+//         Version       Date                        Remarks                              	
+// ======================================================================================== 
+//         1.0           29 jan 2020                 First release of this example        	
+// ======================================================================================== 
+//                                                                                        	
+//******************************* Aims OF this PLC PROGRAM *********************************
+//                                                                                        	
+// P_SystemDK						 			                               	
+//																	                      	
+//                                                                                        	
+//-----------------------------------------------------------------------------------------
+PROGRAM P_SystemDK
+VAR
+	nAlive: UDINT;
+	bEnable: BOOL:= TRUE;
+	
+//******************************************************************************
+// EtherCAT diagnose	
+//******************************************************************************
+	fbEtherCAT_Diag01: Tc3_System_DK.FB_EtherCAT_DiagDk;
+	stEtherCAT_Diag01: Tc3_System_DK.ST_EtherCAT_DiagDk; 
+
+//******************************************************************************
+// Persistent
+//******************************************************************************
+	fbWritePersistentDataDK: Tc3_System_DK.FB_WritePersistentDataDK;
+	stWritePersistentDataDK: Tc3_System_DK.ST_WritePersistentDataDK;
+
+//******************************************************************************
+// System	
+//******************************************************************************
+	fbSystemDK: Tc3_System_DK.FB_SystemDK;
+	stSystemDK: Tc3_System_DK.ST_SystemDK;  
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="M_nCyclic" Id="{ed22cba1-ea17-453c-9f60-376698b738f7}">
+      <Declaration><![CDATA[METHOD PUBLIC M_nCyclic : UDINT
+VAR_INPUT
+	bReset: BOOL;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//	The result of the method is an unsigned double integer
+//	0 = idle 
+//	1 = coupled
+//	2 = starting
+//	3 = running
+//	4 = aborted
+// 	5 = no hardware connected
+//  6 = Spare
+//	7 = pointer or index error
+//	8 = mapping error
+//	9 = parameter error
+//	10 = complete
+//	Any other number = ErrorID
+nAlive:= nAlive +1;
+
+// Local variable
+stEtherCAT_Diag01.bEnable:= bEnable;
+stEtherCAT_Diag01.bReset:= bReset;
+stWritePersistentDataDK.bEnable:= bEnable;
+stWritePersistentDataDK.bReset:= bReset;
+
+
+//********************************************************
+// E T H E R C A T
+//********************************************************
+
+// Call methods
+stEtherCAT_Diag01.arr_nStatus[1]:= fbEtherCAT_Diag01.M_nCyclic(bEnable:= stEtherCAT_Diag01.bEnable, pEtherCAT_Diag:= ADR(GVL_EtherCAT.stEtherCAT_Device1));
+stEtherCAT_Diag01.arr_nStatus[2]:= fbEtherCAT_Diag01.M_nReset(bExecute:= stEtherCAT_Diag01.bReset);
+
+// Get proporty
+stEtherCAT_Diag01.bReady:= fbEtherCAT_Diag01.P_bReady;
+stEtherCAT_Diag01.bError:= fbEtherCAT_Diag01.P_bError;
+stEtherCAT_Diag01.nErrorID:= fbEtherCAT_Diag01.P_nErrorID;
+stEtherCAT_Diag01.bWcError:= fbEtherCAT_Diag01.P_bWcError;
+stEtherCAT_Diag01.nDevState:= fbEtherCAT_Diag01.P_nDevState;
+stEtherCAT_Diag01.nSlaveCounts:= fbEtherCAT_Diag01.P_nSlaveCounts;
+stEtherCAT_Diag01.nCfgSlaveCount:= fbEtherCAT_Diag01.P_nCfgSlaveCount;
+stEtherCAT_Diag01.bEtherCAT_Ok:= fbEtherCAT_Diag01.P_bEtherCAT_Ok;
+
+// Update EtherCAT Ok
+fbEtherCAT_Diag01.P_bEtherCAT_Ok:= FALSE;
+IF fbEtherCAT_Diag01.P_bReady THEN
+	IF fbEtherCAT_Diag01.P_nDevState = 0 THEN
+		IF fbEtherCAT_Diag01.P_nCfgSlaveCount = fbEtherCAT_Diag01.P_nSlaveCounts THEN
+			IF NOT fbEtherCAT_Diag01.P_bWcError THEN	
+				fbEtherCAT_Diag01.P_bEtherCAT_Ok:= TRUE;
+			END_IF
+		END_IF	
+	END_IF
+END_IF
+
+
+//********************************************************
+// P E R S I S T E N T
+//********************************************************
+
+// Set proporty
+fbWritePersistentDataDK.P_eSUPS_Mode:= Tc3_System_DK.eSUPS_WrPersistData_Shutdown;
+fbWritePersistentDataDK.P_ePersistentMode:= Tc3_System_DK.E_PersistentMode.SPDM_2PASS;
+
+// Call methods
+stWritePersistentDataDK.arr_nStatus[1]:= fbWritePersistentDataDK.M_nEnable(bExecute:= stWritePersistentDataDK.bEnable, tLogTimePuls:= T#10M);
+stWritePersistentDataDK.arr_nStatus[2]:= fbWritePersistentDataDK.M_nWrite(bExecute:= stWritePersistentDataDK.bWrite);
+stWritePersistentDataDK.arr_nStatus[3]:= fbWritePersistentDataDK.M_n1_second_UPS(bExecute:= TRUE);
+stWritePersistentDataDK.arr_nStatus[4]:= fbWritePersistentDataDK.M_nReset(bExecute:= stWritePersistentDataDK.bReset);
+
+// Get property
+stWritePersistentDataDK.bReady:= fbWritePersistentDataDK.P_bReady;
+stWritePersistentDataDK.bError:= fbWritePersistentDataDK.P_bError;
+stWritePersistentDataDK.nErrorID:= fbWritePersistentDataDK.P_nErrorID;
+stWritePersistentDataDK.bPowerFailDetect:= fbWritePersistentDataDK.P_bPowerFailDetect;
+stWritePersistentDataDK.bBusy:= fbWritePersistentDataDK.P_bBusy;
+stWritePersistentDataDK.nWriteCNT:= fbWritePersistentDataDK.P_nWriteCNT;
+
+
+//********************************************************
+// S Y S T E M
+//********************************************************
+
+// Call methods
+stSystemDK.arr_nStatus[1]:= fbSystemDK.M_nEnable();
+stSystemDK.arr_nStatus[2]:= fbSystemDK.M_nCerHost(bEnable:= stSystemDK.bCerHost_Enable, bDisable:= stSystemDK.bCerHost_Disable);
+stSystemDK.arr_nStatus[3]:= fbSystemDK.M_nReset(bExecute:= stSystemDK.bReset);
+
+// Get property
+stSystemDK.bReady:= fbSystemDK.P_bReady;
+stSystemDK.bError:= fbSystemDK.P_bError;
+stSystemDK.nErrorID:= fbSystemDK.P_nErrorID;
+stSystemDK.nAdsPort:= fbSystemDK.P_nAdsPort;
+stSystemDK.nCycleTime:= fbSystemDK.P_nCycleTime;
+stSystemDK.bIs_RTOS_Device:= fbSystemDK.P_bIs_RTOS_Device; 
+stSystemDK.bIs_CE_Device:= fbSystemDK.P_bIs_CE_Device;
+stSystemDK.bIs_BSD_Device:= fbSystemDK.P_bIs_BSD_Device;
+stSystemDK.bIs_WIN_Device:= fbSystemDK.P_bIs_WIN_Device;
+stSystemDK.bIs_ARM:= fbSystemDK.P_bIs_ARM;
+stSystemDK.bIs_x86:= fbSystemDK.P_bIs_x86;
+stSystemDK.bIs_x64:= fbSystemDK.P_bIs_x64;
+stSystemDK.sTwinCAT_Version:= fbSystemDK.P_sTwinCAT_Version;
+stSystemDK.sHardwareSerialNumber:= fbSystemDK.P_sHardwareSerialNumber;
+stSystemDK.stDeviceIdentificationEx:= fbSystemDK.P_stDeviceIdentificationEx;
+
+
+// Return value
+IF stEtherCAT_Diag01.bReady THEN
+	IF stWritePersistentDataDK.bReady THEN
+		IF stSystemDK.bReady THEN
+			M_nCyclic:= Tc3_System_DK.cCOMPLETE;
+		ELSE
+			IF fbSystemDK.P_bError THEN
+				M_nCyclic:=	stSystemDK.nErrorID;
+			ELSE
+				M_nCyclic:=	stEtherCAT_Diag01.arr_nStatus[1];
+			END_IF
+		END_IF
+	ELSE
+		IF fbWritePersistentDataDK.P_bError THEN
+			M_nCyclic:= stWritePersistentDataDK.nErrorID;
+		ELSE
+			M_nCyclic:= stEtherCAT_Diag01.arr_nStatus[1];
+		END_IF
+	END_IF
+ELSE
+	M_nCyclic:= stEtherCAT_Diag01.arr_nStatus[1];
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="P_SystemDK">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="P_SystemDK.M_nCyclic">
+      <LineId Id="10" Count="12" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="250" Count="1" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="99" Count="3" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="74" Count="24" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="103" Count="2" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="111" Count="1" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="113" Count="10" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="124" Count="1" />
+      <LineId Id="107" Count="1" />
+      <LineId Id="126" Count="2" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="129" Count="8" />
+      <LineId Id="139" Count="1" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="141" Count="5" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="183" Count="0" />
+      <LineId Id="192" Count="3" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="33" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

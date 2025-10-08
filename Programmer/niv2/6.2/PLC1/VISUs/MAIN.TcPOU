@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+	P_Rum_6_217: INT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+P_SystemDK.M_nCyclic(bReset := breset );
+P_DALI_DIAG();
+DALI_Commissioning();
+P_DALI_Energy_Line();
+P_AHModbusComm();
+
+
+//Gange
+P_Gang_5_266A();
+P_Gang_5_238();
+P_Gang_6_210();
+
+//Rum
+P_Rum_5_255();
+P_Rum_5_259();
+P_Rum_5_253();
+P_rum_5_254();
+P_rum_5_256A();
+P_Rum_5_256B();
+P_rum_5_258();
+P_rum_5_260A();
+P_rum_5_260B();
+P_rum_5_262();
+P_Rum_5_263();
+P_rum_5_265();
+
+
+
+P_Rum_6_202();
+P_Rum_6_205();
+P_Rum_6_209();
+P_Rum_6_211();
+P_Rum_6_212();
+P_Rum_6_213();
+P_Rum_6_214A();
+P_Rum_6_214B();
+P_Rum_6_216B();
+P_Rum_6_215();
+P_Rum_6_216A();
+P_Rum_6_217_1();
+P_Rum_6_218A();
+P_Rum_6_218B();
+P_Rum_6_219();
+P_Rum_6_220();
+P_Rum_6_221();
+P_Rum_6_222();
+
+
+//FoldeDøre
+//P_Foldedoer_5_125();
+
+
+
+//Testprogrammer
+//P_DALI_Energy_Firmware_Test();
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

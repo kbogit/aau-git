@@ -1,0 +1,426 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_Part205Incandescent" Id="{742585f9-26b2-4587-a29a-610220217b84}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part205Incandescent
+VAR_INPUT
+	ipDALICommunication					:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy								:	BOOL;
+END_VAR
+VAR
+	{region "Visu"}
+	bReadStatus							:	BOOL;
+	bReadParameter						:	BOOL;
+	bWrite								:	BOOL;
+	sLoadOverCurrentShutdown			:	STRING(5);
+	sThermalShutdown					:	STRING(5);
+	sOpenCircuitDetection				:	STRING(5);
+	sThermalOverload	 				:	STRING(5);
+	sInvalidDimmingMethod				:	STRING(5);
+	sSupplyVoltageOutOfLimit			:	STRING(5);
+	sSupplyFrequencyOutOfLimit			:	STRING(5);
+	sLoadVoltageOutOfLimit				:	STRING(5);
+	sLoadCurrentOverload				:	STRING(5);
+	sLinearDimmingCurve					:	STRING(5);
+	sLeadingEdgeModeRunning				:	STRING(5);
+	sTrailingEdgeModeRunning			:	STRING(5);
+	
+	eDimmingCurve						:	Tc3_DALI.E_DALIDimmingCurve;
+	{endregion}
+		 
+	nStep								:	INT;
+	nAddress							: 	BYTE;
+	bHideWaitSymbol						:	BOOL := TRUE;	
+	nFeatures							:	DWORD;
+	
+	nRmsLoadVoltage						:	BYTE;
+	bNoRmsLoadVoltage					:	BOOL;
+	fRealLoadPower						:	REAL;
+	bNoRealLoadPower					:	BOOL;
+	fLoadRating							:	REAL;
+	bNoLoadRating						:	BOOL;
+	nDimmerTemperature					:	BYTE;
+	bNoDimmerTemperature				:	BOOL;
+	nRMSSupplyVoltage					:	UINT;
+	bNoRMSSupplyVoltage					:	BOOL;
+	nRMSLoadCurrent						:	BYTE;
+	bNoRMSLoadCurrent					:	BOOL;
+	nSupplyFrequency					:	BYTE;
+	bNoSupplyFrequency					:	BOOL;
+	
+	
+	bLoadOverCurrentShutdownQueried		:	BOOL;
+	bOpenCircuitQueried					:	BOOL;
+	bThermalShutdownQueried				:	BOOL;
+	bThermalOverloadQueried				:	BOOL;
+	bTempQueried						:	BOOL;
+	bSupplyVoltageQueried				:	BOOL;
+	bSupplyFrequencyQueried				:	BOOL;
+	bLoadVoltageQueried					:	BOOL;
+	bLoadCurrentQueried					:	BOOL;
+	bRealLoadPowerQueried				:	BOOL;
+	bLoadRatingQueried					:	BOOL;
+	bLoadCurrentOverloadQueried			:	BOOL;
+	bDimmingMethodBit0					:	BOOL;
+	bDimmingMethodBit1					:	BOOL;
+	bNonLogarithmicCurve				:	BOOL;
+	bUnsuitableLoadQueried				:	BOOL;
+		
+	fb103StartQuiescentMode				:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode				:	FB_DALI103StopQuiescentMode(0);
+	fb205QueryFeatures					:	FB_DALI205QueryFeatures(0);
+	
+	fb205QueryRMSLoadVoltage			:	FB_DALI205QueryRMSLoadVoltage(0);
+	fb205QueryRealLoadPower				:	FB_DALI205QueryRealLoadPower(0);
+	fb205QueryLoadRating				:	FB_DALI205QueryLoadRating(0);
+	fb205QueryDimmerTemperature			:	FB_DALI205QueryDimmerTemperature(0);
+	fb205QueryDimmerStatus				:	FB_DALI205QueryDimmerStatus(0);
+	fb205QueryFailureStatus				:	FB_DALI205QueryFailureStatus(0);
+	fb205QueryRMSSupplyVoltage			:	FB_DALI205QueryRMSSupplyVoltage(0);
+	fb205QueryRMSLoadCurrent			:	FB_DALI205QueryRMSLoadCurrent(0);
+	fb205QuerySupplyFrequency			:	FB_DALI205QuerySupplyFrequency(0);
+	
+	fb205QueryDimmingCurve				:	FB_DALI205QueryDimmingCurve(0);
+	fb205SelectDimmingCurve				:	FB_DALI205SelectDimmingCurve(0);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bReadStatus AND (nStep = 0)) THEN
+	nStep := 5;
+	bReadStatus := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bReadParameter AND (nStep = 0)) THEN
+	nStep := 200;
+	bReadParameter := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWrite AND (nStep = 0)) THEN
+	nStep := 1000;
+	bWrite := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+{region "Manage Dialog Selection}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bReadStatus := FALSE;
+	bReadParameter := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb205QueryFeatures.ipDALICommunication := ipDALICommunication;
+	fb205QueryDimmingCurve.ipDALICommunication := ipDALICommunication;
+	fb205SelectDimmingCurve.ipDALICommunication := ipDALICommunication;
+	fb205QueryRMSLoadVoltage.ipDALICommunication := ipDALICommunication;
+	fb205QueryRealLoadPower.ipDALICommunication := ipDALICommunication;
+	fb205QueryLoadRating.ipDALICommunication := ipDALICommunication;
+	fb205QueryDimmerTemperature.ipDALICommunication := ipDALICommunication;
+	fb205QueryFailureStatus.ipDALICommunication := ipDALICommunication;
+	fb205QueryDimmerStatus.ipDALICommunication := ipDALICommunication;
+	fb205QueryRMSSupplyVoltage.ipDALICommunication := ipDALICommunication;
+	fb205QueryRMSLoadCurrent.ipDALICommunication := ipDALICommunication;
+	fb205QuerySupplyFrequency.ipDALICommunication := ipDALICommunication;
+{endregion}
+{region "Read Status"}
+5:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart  := FALSE);
+		nStep := 10;
+	END_IF
+{endregion}
+10:
+{region "Query Dimmer Features"}
+	fb205QueryFeatures(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						nFeatures => nFeatures);
+	IF (NOT fb205QueryFeatures.bBusy) THEN
+	fb205QueryFeatures(bStart := FALSE);
+	nStep := 15;
+	END_IF
+{endregion}
+15:
+{region "Query RMS Load Voltage"}
+	IF (fb205QueryFeatures.nFeatures.11) THEN
+		bNoRmsLoadVoltage := FALSE;
+		nStep := 20;
+	ELSE 
+		bNoRmsLoadVoltage := TRUE;
+		nStep := 25;
+	END_IF
+20:
+	fb205QueryRMSLoadVoltage(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryRMSLoadVoltage.bBusy) THEN
+		nRmsLoadVoltage := 2 * (fb205QueryRMSLoadVoltage.nRMSLoadVoltage);
+		fb205QueryRMSLoadVoltage(bStart := FALSE);
+		nStep := 25;
+	END_IF
+{endregion}
+25:
+{region "Query Real Load Power"}
+	IF (fb205QueryFeatures.nFeatures.13) THEN
+		bNoRealLoadPower := FALSE;
+		nStep := 30;
+	ELSE
+		bNoRealLoadPower := TRUE;
+		nStep := 35;
+	END_IF
+30:
+	fb205QueryRealLoadPower(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryRealLoadPower.bBusy) THEN
+		fRealLoadPower := TO_REAL(fb205QueryRealLoadPower.nRealLoadPower / 4);
+		fb205QueryRealLoadPower(bStart := FALSE);
+		nStep := 35;
+	END_IF
+{endregion}
+35:
+{region "Query Load Rating"}
+	IF (fb205QueryFeatures.nFeatures.14) THEN
+		bNoLoadRating := FALSE;
+		nStep := 40;
+	ELSE
+		bNoLoadRating := TRUE;
+		nStep := 45;
+	END_IF
+40:
+	fb205QueryLoadRating(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryLoadRating.bBusy) THEN
+		fLoadRating := TO_REAL( fb205QueryLoadRating.nLoadRating) * 0.15;
+		fb205QueryLoadRating(bStart := FALSE);
+		nStep := 45;
+	END_IF
+{endregion}
+45:
+{region "Query Dimmer Temperature"} 
+	IF (fb205QueryFeatures.nFeatures.8) THEN
+		bNoDimmerTemperature := FALSE;
+		nStep := 50;
+	ELSE 
+		bNoDimmerTemperature := TRUE;
+		nStep := 55;
+	END_IF
+50:
+	fb205QueryDimmerTemperature(bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryDimmerTemperature.bBusy) THEN
+		nDimmerTemperature := (fb205QueryDimmerTemperature.nDimmerTemperature - 40);
+		fb205QueryDimmerTemperature(bStart := FALSE);
+		nStep := 55;
+	END_IF
+{endregion}
+55:
+{region "Query RMS Supply Voltage"}
+	IF (fb205QueryFeatures.nFeatures.9) THEN
+		bNoRMSSupplyVoltage := FALSE;
+		nStep := 60;
+	ELSE 
+		bNoRMSSupplyVoltage := TRUE;
+		nStep := 65;
+	END_IF
+60:
+	fb205QueryRMSSupplyVoltage(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryRMSSupplyVoltage.bBusy) THEN
+		nRMSSupplyVoltage := ( fb205QueryRMSSupplyVoltage.nRMSSupplyVoltage * 2);
+		fb205QueryRMSSupplyVoltage(bStart := FALSE);
+		nStep := 65;
+	END_IF
+{endregion}
+65:
+{region "Query RMS Load Current"}
+	IF (fb205QueryFeatures.nFeatures.12) THEN
+		bNoRMSLoadCurrent := FALSE;
+		nStep := 70;
+	ELSE 
+		bNoRMSLoadCurrent := TRUE;
+		nStep := 75;
+	END_IF
+70:
+	fb205QueryRMSLoadCurrent(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+								nRMSLoadCurrent => nRMSLoadCurrent);
+	IF (NOT fb205QueryRMSLoadCurrent.bBusy) THEN
+		nRMSLoadCurrent := (fb205QueryRMSLoadCurrent.nRMSLoadCurrent / 2);
+		fb205QueryRMSSupplyVoltage(bStart := FALSE);
+		nStep := 75;
+	END_IF
+{endregion}
+75:
+{region "Query Supply Frequency"}
+	IF (fb205QueryFeatures.nFeatures.10) THEN
+		bNoSupplyFrequency := FALSE;
+		nStep := 80;
+	ELSE
+		bNoSupplyFrequency := TRUE;
+		nStep := 90;
+	END_IF
+80:
+	fb205QuerySupplyFrequency(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QuerySupplyFrequency.bBusy) THEN
+		nSupplyFrequency := (fb205QuerySupplyFrequency.nSupplyFrequency / 2);
+		fb205QuerySupplyFrequency(bStart := FALSE);
+		nStep := 90;
+	END_IF
+{endregion}
+90:
+{region "Query Failure Status"}
+	fb205QueryFailureStatus(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryFailureStatus.bBusy) THEN
+		fb205QueryFailureStatus(bStart := FALSE);
+		sLoadOverCurrentShutdown := SEL(fb205QueryFailureStatus.nFailureStatus.0, 'False', 'True');
+		sOpenCircuitDetection := SEL(fb205QueryFailureStatus.nFailureStatus.1, 'False', 'True');
+		sThermalShutdown := SEL(fb205QueryFailureStatus.nFailureStatus.5, 'False', 'True');
+		sThermalOverload := SEL(fb205QueryFailureStatus.nFailureStatus.6, 'False', 'True');
+		sInvalidDimmingMethod := SEL(fb205QueryFailureStatus.nFailureStatus.8, 'False', 'True');
+		sSupplyVoltageOutOfLimit := SEL(fb205QueryFailureStatus.nFailureStatus.9, 'False', 'True');
+		sSupplyFrequencyOutOfLimit := SEL(fb205QueryFailureStatus.nFailureStatus.10, 'False', 'True');
+		sLoadVoltageOutOfLimit := SEL(fb205QueryFailureStatus.nFailureStatus.11, 'False', 'True');
+		sLoadCurrentOverload := SEL(fb205QueryFailureStatus.nFailureStatus.12, 'False', 'True');
+		nStep := 100;
+	END_IF
+{endregion}
+100:
+{region "Query Dimmer Status"}
+	fb205QueryDimmerStatus(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryDimmerStatus.bBusy) THEN
+		fb205QueryDimmerStatus(bStart := FALSE);
+		sLeadingEdgeModeRunning := SEL(fb205QueryDimmerStatus.nDimmerStatus.0, 'False', 'True');
+		sTrailingEdgeModeRunning := SEL(fb205QueryDimmerStatus.nDimmerStatus.1, 'False', 'True');
+		sLinearDimmingCurve := SEL(fb205QueryDimmerStatus.nDimmerStatus.4, 'False', 'True');
+		nStep := 110;
+	END_IF
+{endregion}
+110:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+
+{region "Read Parameter"}
+200:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart := FALSE);
+		nStep := 210;
+	END_IF
+{endregion}
+210:
+{region "Query Dimmer Features"}
+	fb205QueryFeatures(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						nFeatures => nFeatures);
+	IF (NOT fb205QueryFeatures.bBusy) THEN
+		fb205QueryFeatures(bStart := FALSE);
+		bLoadOverCurrentShutdownQueried := nFeatures.0;
+		bOpenCircuitQueried := nFeatures.1;
+		bThermalShutdownQueried := nFeatures.5;
+		bThermalOverloadQueried := nFeatures.6;
+		bTempQueried := nFeatures.8;
+		bSupplyVoltageQueried := nFeatures.9;
+		bSupplyFrequencyQueried := nFeatures.10;
+		bLoadVoltageQueried := nFeatures.11;
+		bLoadCurrentQueried := nFeatures.12;
+		bRealLoadPowerQueried := nFeatures.13;
+		bLoadRatingQueried := nFeatures.14;
+		bLoadCurrentOverloadQueried := nFeatures.15;
+		bDimmingMethodBit0 := nFeatures.16;
+		bDimmingMethodBit1 := nFeatures.17;
+		bNonLogarithmicCurve := nFeatures.19;
+		bUnsuitableLoadQueried := nFeatures.23;
+		nStep := 220;
+	END_IF
+{endregion}
+220:
+{region "Query Dimming Curve"}
+	fb205QueryDimmingCurve(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb205QueryDimmingCurve.bBusy) THEN
+		fb205QueryDimmingCurve(	bStart := FALSE);
+		eDimmingCurve := fb205QueryDimmingCurve.eDimmingCurve;
+		nStep := 230;
+	END_IF
+{endregion}
+230:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+
+{region "Write Parameter"}
+1000:
+	fb205SelectDimmingCurve(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eDimmingCurve := eDimmingCurve);
+	IF (NOT fb205SelectDimmingCurve.bBusy) THEN
+		fb205SelectDimmingCurve.bStart := FALSE;
+		nStep := 0;
+	END_IF
+{endregion}
+END_CASE]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

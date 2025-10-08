@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Foldedoer_5_125" Id="{113bd217-ebc1-4194-8590-ae4936340b75}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Foldedoer_5_125
+(*
+Rummene er delt af en foldedør med dørkontakt i rum 5.125. Når dørkontakt aktiveres behandles de to rum som ét rum:
+	- Senorinput sammensættes, således de to reguleringer har samme PV.
+	- Knapfunktion sammensættes, således alle knapper kan benyttes for hele rummet.
+Sammensætning af sensorinput foregår i FB_FoldingDoor.A_SensorLogic (SH_Light)
+Sammensætning af knapfunktion foregår i FB_FoldingDoor.A_ButtonLogic (SH_Light)
+
+Rækkefølge i arrays: [1, 2] = [*rum 5.125*, *rum 5.127*]
+*)
+VAR
+	bFoldingDoorOpen 		AT %I*	: BOOL;
+	
+	arrOnZone1									: ARRAY[1..2] OF BOOL;
+	arrTopButtonZone1						: ARRAY[1..2] OF BOOL; //Fra GVL_EnOcean
+	arrBottomButtonZone1					: ARRAY[1..2] OF BOOL; //Fra GVL_EnOcean
+	arrTopButtonZone1Comb				: ARRAY[1..2] OF BOOL; //Til A_Buttons
+	arrBottomButtonZone1Comb			: ARRAY[1..2] OF BOOL; //Til A_Buttons
+	
+	arrstPirSensorData						: ARRAY[1..2] OF SH_Light.ST_DALI_Sensor; //VAR_IN_OUT til og fra sensorer
+	arrstPirSensorDataComb				: ARRAY[1..2] OF SH_Light.ST_DALI_Sensor; //VAR_IN_OUT til og fra LightCtrl
+	
+	bOverride										: BOOL;
+	
+	fbFoldingDoor								: SH_Light.FB_FoldingDoor;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[arrOnZone1[1]					:= P_Rum_5_125.fbLys.fblightctrl.bOnZone1;
+arrOnZone1[2]					:= P_Rum_5_127.fbLys.fblightctrl.bOnZone1;
+arrTopButtonZone1[1]		:= GVL_EnOcean.strEnOceanSwitch_Rum_5_125_indgang.bT1_ON OR GVL_EnOcean.strEnOceanSwitch_Rum_5_125_ekstra.bT2_ON;
+arrBottomButtonZone1[1]	:= GVL_EnOcean.strEnOceanSwitch_Rum_5_125_indgang.bT1_OFF OR GVL_EnOcean.strEnOceanSwitch_Rum_5_125_ekstra.bT2_OFF;
+arrTopButtonZone1[2]		:= GVL_EnOcean.strEnOceanSwitch_Rum_5_127.bT1_ON;
+arrBottomButtonZone1[2]	:= GVL_EnOcean.strEnOceanSwitch_Rum_5_127.bT1_OFF;
+
+
+fbFoldingDoor(
+	bFoldingDoorOpen 				:= bFoldingDoorOpen,
+	arrOnZone1							:= arrOnZone1,
+	arrTopButtonZone1 				:= arrTopButtonZone1,
+	arrBottomButtonZone1			:= arrBottomButtonZone1,
+	arrstPirSensorData				:= arrstPirSensorData,
+	arrstPirSensorDataComb		:= arrstPirSensorDataComb,
+	arrTopButtonZone1Comb		=> arrTopButtonZone1Comb,
+	arrBottomButtonZone1Comb	=> arrBottomButtonZone1Comb,
+	bOverride								=> bOverride);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

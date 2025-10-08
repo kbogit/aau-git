@@ -1,0 +1,396 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_EnOcean" Id="{d2583012-7b8d-42b3-930e-7213eee0e992}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_EnOcean
+VAR
+	fbKL6581			: FB_KL6581;
+	stKL6581_in  AT %I* : KL6581_INPUT;
+	stKL6581_out AT %Q*	: KL6581_OUTPUT;
+	stKL6581			: STR_KL6581;
+	bInitCom			: BOOL := TRUE;
+	
+	arrEnOcean_Search	: ARRAY [1..8] OF FB_EnOcean_Search;
+	nSearchIdx			: BYTE;
+	bSerach				: BOOL;
+	arrDevices			: ARRAY [1..8] OF INT;
+	arrID				: ARRAY [1..8, 0..255] OF DWORD;
+	
+	//Trykknapper på gange
+	fbGang_1_315_Tryk_Pendler		: FB_Rec_RPS_Switch;
+	fbGang_1_316_Tryk					: FB_Rec_RPS_Switch;
+	//fbGang_6_310_Tryk			: FB_Rec_RPS_Switch;
+	
+	//Trykknapper i rum
+	fbRum_1_317_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_318_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_319_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_320_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_321_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_322_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_323_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_324_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_325_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_326_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_327_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_328_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_1_330_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_327_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_328_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_329_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_330A_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_330B_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_331_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_333_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_337_Tryk			: FB_Rec_RPS_Switch;
+	fbRum_6_337_Tryk_UnknownLoc	: FB_Rec_RPS_Switch;
+	fbGang_1_310_Tryk: INT;
+END_VAR
+
+VAR CONSTANT
+	byNode_1: BYTE := 1;
+	byNode_2: BYTE := 2;
+	byNode_3: BYTE := 3;
+	byNode_4: BYTE := 4;
+	byNode_5: BYTE := 5;
+	byNode_6: BYTE := 6;
+	byNode_7: BYTE := 7;
+	byNode_8: BYTE := 8;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+(* Kommunikation mit der KL6581. *)
+(* Communication with the KL6581. *)
+fbKL6581(
+	bInit			:= bInitCom,
+	nIdx			:= 2,
+	stKL6581_in		:= stKL6581_In,
+	stKL6581_out	:= stKL6581_Out,
+	bReady			=> ,
+	bBusy			=> ,
+	bError			=> ,
+	iErrorID		=> ,
+	str_KL6581		=> stKL6581);
+
+(* Warten bis der Kommunikationsbaustein initialisiert wurde.*)
+(* Wait until the communication function block has been initialized. *)
+IF (NOT fbKL6581.bReady) THEN
+	RETURN;
+END_IF
+
+FOR nSearchIdx:= 1 TO 8 DO
+	arrEnOcean_Search[nSearchIdx](
+		bStart:= TRUE, 
+		str_KL6581:= stKL6581 , 
+		byNode:= nSearchIdx, 
+		bReceive=> , 
+		iDevices=>arrDevices[nSearchIdx] , 
+		ar_ID=> );
+		
+		MEMCPY(ADR(arrID[nSearchIdx,0]), ADR(arrEnOcean_Search[nSearchIdx].ar_ID), SIZEOF(arrEnOcean_Search[nSearchIdx].ar_ID)); 
+END_FOR
+
+A_Gang_1_315();
+A_Gang_1_316();
+//A_Gang_6_310(); Der findes vist ikke en knap til denne gang
+
+A_Rum_1_317();
+A_Rum_1_318();
+A_Rum_1_319();
+A_Rum_1_320();
+A_Rum_1_321();
+A_Rum_1_322();
+A_Rum_1_323();
+A_Rum_1_324();
+A_Rum_1_325();
+A_Rum_1_326();
+A_Rum_1_327();
+A_Rum_1_328();
+A_Rum_1_330();
+A_Rum_6_327();
+A_Rum_6_328();
+A_Rum_6_329();
+A_Rum_6_330A();
+A_Rum_6_330B();
+A_Rum_6_331();
+A_Rum_6_333();
+A_Rum_6_337();
+
+]]></ST>
+    </Implementation>
+    <Action Name="A_Gang_1_315" Id="{8247182c-a772-4b27-815a-da064112dabc}">
+      <Implementation>
+        <ST><![CDATA[
+fbGang_1_315_Tryk_Pendler(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4, 
+	dw_ID:= 16#FEEAC2A4, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_1_315_Pendler, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Gang_1_316" Id="{99913611-96e0-4ce4-a81e-cb17f3cdbb8a}">
+      <Implementation>
+        <ST><![CDATA[fbGang_1_316_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#29B928, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_1_316,
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Gang_6_310" Id="{0c5f7b6d-4f70-4a25-a9d0-dea21fdc359c}">
+      <Implementation>
+        <ST><![CDATA[fbGang_6_310_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_6_310,
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_317" Id="{aeb6deef-b26d-4eb5-9023-a9a71a25ad64}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_317_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#2F3111, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_317, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_318" Id="{1bc66e9e-837a-4936-96b1-ce5581b6431d}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_318_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#2E7C1D, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_318, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_319" Id="{c6f02915-77d3-46c3-8c6c-65b882fb66b4}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_319_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F6611, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_319, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_320" Id="{b4eb5e15-6860-4a42-8574-f55b3b76d2fe}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_320_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F6682, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_320, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_321" Id="{841492f9-7732-451c-a11e-2af5d9ffd6f3}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_321_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2E7CCA, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_321, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_322" Id="{39c00693-5f4d-4d9a-b01d-2127777227d9}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_322_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F668D, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_322, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_323" Id="{0b021b4a-11d9-4cb2-ab79-d19d81962bc0}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_323_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2E7CC4, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_323, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_324" Id="{6cc91c7b-9102-4190-afa8-bf06af4d4724}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_324_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2E7CDB, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_324, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_325" Id="{70ffb860-14dd-47ff-abf8-331e6ec7701f}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_325_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F666A, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_325, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_326" Id="{248c2f6f-e5c1-4c58-ac55-9bf922cda10c}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_326_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F667A, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_326, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_327" Id="{f6f5e4bd-5f31-44bf-9026-0d49da268ef0}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_327_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2E7CD5, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_327, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_328" Id="{078eeee5-d26a-4acc-9ae0-bd3a96399ef5}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_328_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2E7CD8, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_328, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_1_330" Id="{c0483bc1-f1e0-4593-94e7-4decf81c6b03}">
+      <Implementation>
+        <ST><![CDATA[fbRum_1_330_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_4 , 
+	dw_ID:= 16#2F3101, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_1_330, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_327" Id="{081964d2-62c8-471a-a26c-1519beb93c1b}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_327_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EC3, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_327, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_328" Id="{c8497d2b-8938-4c16-9e19-a0703ad1a04c}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_328_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EDB, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_328, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_329" Id="{f747cb7e-46e5-4691-88f8-11d85664979f}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_329_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290F3A, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_329, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_330A" Id="{e01e1661-56f0-4f53-949d-167d3bcd8286}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_330A_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290ECB, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_330A, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_330B" Id="{af702c7f-4fe9-495b-8221-ce45a95dfdfd}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_330B_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EE8, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_330B, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_331" Id="{777d7093-c0ad-49d4-ad9b-40015c0faab7}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_331_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EE2, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_331, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_333" Id="{d6970500-1d28-4a3c-9617-0b1d55d10b0e}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_333_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EE6, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_333, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_6_337" Id="{0cdff003-3e3f-4f32-a748-4520f88fcafb}">
+      <Implementation>
+        <ST><![CDATA[fbRum_6_337_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#29AB5A, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_337, 
+	by_Node=> , 
+	bReceive=> );
+	
+fbRum_6_337_Tryk_UnknownLoc(
+	str_KL6581:=stKL6581 , 
+	byNode:= byNode_2 , 
+	dw_ID:= 16#290EE1, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_6_337_UnknownLoc, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

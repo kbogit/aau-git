@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="GearType" Id="{7c05af54-4669-4e6f-aff0-b04a6bb76b79}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION GearType : STRING[80]
+VAR_INPUT
+	nGearType	:	BYTE;
+END_VAR
+VAR
+	i: INT;
+	aText	:	ARRAY [0..7] OF STRING[80];
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[GearType := '';
+	aText[0] := 'Output is an electronic switch';
+	aText[1] := 'Output is a relay with default open contacts';
+	aText[2] := 'Output is a relay with default closed contacts';
+	aText[3] := 'Output has a transient suppressor';
+	aText[4] := 'Load inrush current limitation is integrated';
+	aText[5] := '';
+	aText[6] := '';
+	aText[7] := '';
+FOR i := 0 TO 7 DO
+	IF nGearType.0 THEN
+		GearType := aText[i];
+	ELSE
+		GearType := '';
+	END_IF
+	nGearType := ROR (nGearType,1);
+END_FOR
+
+IF (nGearType.1 AND nGearType.2)	THEN 
+	GearType := 'Latched Output, the latched state does not change when power is removed';
+END_IF	
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="GearType">
+      <LineId Id="7" Count="0" />
+      <LineId Id="34" Count="6" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="42" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="52" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

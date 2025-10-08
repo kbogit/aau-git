@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Test_TypeA" Id="{b67c068e-7a4a-43a6-b337-c6243308ab2d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Test_TypeA
+VAR
+	fbTA: FB_FunctionType_A;
+	bButtonZone1 			: BOOL;
+	bButtonZone2 			: BOOL;
+	bPIR 					: BOOL;
+	fLuxOn 					: REAL := 500;
+	fLuxDim 				: REAL := 200;
+	tPIRDim 				: TIME := T#15M;
+	tPIROff 				: TIME := T#30M;
+	
+	//Output from FB
+	fLuxZone1 				: REAL;
+	bDimUp					: BOOL:= FALSE;
+	bDimDwn 				: BOOL:= FALSE;
+	bOnZone1 				: BOOL;
+	bOffZone1 				: BOOL:= TRUE;
+	bAutoZone1 				: BOOL:= TRUE;
+	
+	bAutoZone2 				: BOOL:= TRUE;
+	bOnZone2 				: BOOL;
+	bOffZone2 				: BOOL:= TRUE;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+fbTA(
+	bButtonZone1:= bButtonZone1, 
+	bButtonZone2:= bButtonZone2 , 
+	bPIR:= bPIR, 
+	fLuxOn:= fLuxOn, 
+	fLuxDim:= fLuxDim, 
+	tPIRDim:= tPIRDim, 
+	tPIROff:= tPIROff, 
+	fLuxZone1=> fLuxZone1, 
+	bDimUp=> bDimUp , 
+	bDimDwn=> bDimDwn, 
+	bOnZone1=> bOnZone1, 
+	bOffZone1=> bOffZone1, 
+	bAutoZone1=> bAutoZone1, 
+	bAutoZone2=> bAutoZone2, 
+	bOnZone2=> bOnZone2, 
+	bOffZone2=> bOffZone2);]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

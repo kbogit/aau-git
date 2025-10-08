@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="DALI_Commissioning" Id="{7a96f147-f339-40c8-955b-e6043a72b56d}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM DALI_Commissioning
+VAR
+	{region "Visu"}
+	nSelectedDialog					:	INT;
+	bDisableComboBox				:	BOOL;
+	{endregion}
+
+ 	fbPart102Addressing				:	FB_Part102Addressing;	
+	fbPart102Commands				:	FB_Part102Commands;	
+	fbPart102Groups					:	FB_Part102Groups;
+	fbPart102Parameters				:	FB_Part102Parameters;	
+	fbPart102Scenes					:	FB_Part102Scenes;
+	fbPart103Addressing				:	FB_Part103Addressing;	
+	fbPart103Parameters				:	FB_Part103Parameters;	
+	fbPart300GenericDevice			:	FB_Part300GenericDevice;		
+	fbPart301PushButton				:	FB_Part301PushButton;	
+	fbPart302AbsoluteInputDevice	:	FB_Part302AbsoluteInputDevice;				
+	fbPart303OccupancySensor		:	FB_Part303OccupancySensor;			
+	fbPart304LightSensor			:	FB_Part304LightSensor;		
+	fbPart207LED					:	FB_Part207LED;
+	fbPart208Switching				:	FB_Part208Switching;
+	fbPart102MemoryPages			:	FB_Part102MemoryPages;		
+	fbPart103MemoryPages			:	FB_Part103MemoryPages;		
+	fbPart102SetFading				:	FB_Part102SetFading;	
+	fbPart205Incandescent			:	FB_Part205Incandescent;		
+	fbPart202Emergency				:	FB_Part202Emergency;	
+	fbPart103IdentifyDevice			:	FB_Part103Identify;	
+
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+CASE nSelectedDialog OF
+
+0:
+	;
+
+1:
+	fbPart102Commands(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine]);
+
+2:
+	fbPart102Addressing(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+3:
+	fbPart102Parameters(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+4:
+	fbPart102Groups(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+5:
+	fbPart102Scenes(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+6:
+	fbPart102MemoryPages(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+7:
+	fbPart102SetFading(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+	
+8:
+	fbPart202Emergency(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+9:	
+	fbPart205Incandescent(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+10:
+	fbPart207LED(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+11:
+	fbPart208Switching(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+12:
+	fbPart103Addressing(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+13:
+	fbPart103Parameters(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+14:
+	fbPart103IdentifyDevice(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+15:
+	fbPart301PushButton(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+16:
+	fbPart302AbsoluteInputDevice(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+17:
+	fbPart303OccupancySensor(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+18:
+	fbPart304LightSensor(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+19:
+	fbPart300GenericDevice(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+
+20:
+	fbPart103MemoryPages(ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[GVL_Internal.nDALILine], bBusy => bDisableComboBox);
+21:
+	P_DALI_Background();	
+END_CASE
+{endregion}
+
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

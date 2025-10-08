@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_Trappe_T6" Id="{72f73979-145a-4f6a-80db-346e98fc0a80}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_Trappe_T6
+VAR
+	bDigitalPir				AT%I*	: BOOL;
+	bTrappelysNC		AT%Q*	: BOOL;
+	
+	fbTon_Off				: TON;
+	tPirTidOff				: TIME;
+	tPirTidOff_PLC	: TIME := T#1M;
+	bIngenAktivitet		: BOOL;
+	bTrappeLys			: BOOL;
+	
+	//Modbus data Read
+	bTrappeAktivitet		: BOOL;
+	//Modbus data Read/Wrtite
+	bPirTidOff_MB			: TIME;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+bIngenAktivitet	:= NOT bDigitalPir;
+tPirTidOff		:= tPirTidOff_PLC;
+
+fbTon_Off(IN:= bIngenAktivitet, PT:= tPirTidOff);
+
+IF bDigitalPir  THEN
+	bTrappeLys := TRUE;
+END_IF
+IF fbTon_Off.Q THEN
+	bTrappeLys := FALSE;
+END_IF
+
+bTrappelysNC 	:= NOT bTrappeLys;]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

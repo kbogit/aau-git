@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI_Energy_Firmware_Test" Id="{d6a05d79-197a-49ae-af6a-33485848e528}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DALI_Energy_Firmware_Test
+VAR
+//	fbDALI102GetSettings_Test					:	FB_DALI102GetSettings;
+	fbDALI102ReadMemoryLocation_Test			:	FB_DALI102ReadMemoryLocation(0);
+//	fbDALI252QueryActiveEnergy_Test				:	FB_DALI252QueryActiveEnergy(0);
+//	fbDALI252QueryActiveEnergyLoadside_Test		:	FB_DALI252QueryActiveEnergyLoadside(0);
+//	fbDALI252QueryActivePower_Test				:	FB_DALI252QueryActivePower(0);
+//	fbDALI252QueryActivePowerLoadside_Test		:	FB_DALI252QueryActivePowerLoadside;
+//	fbDALI252QueryApparentEnergy_Test			:	FB_DALI252QueryApparentEnergy;
+//	fbDALI252QueryApparentPower_Test			:	FB_DALI252QueryApparentPower;
+	//fbDALI253QueryControlGearOperatingTime_Test	:	FB_DALI253QueryControlGearOperatingTime(0);
+//	
+	bTestEnergyReporting						:	BOOL	:=	FALSE; 
+	byAddress									:	BYTE	:=	7;
+	bActionBusy									:	BOOL;
+	arrErr     									:	ARRAY[0..4] OF BOOL;
+	arrErrorId									:	ARRAY[0..4] OF UDINT;
+	byOffset									:	BYTE	:=	16#09;
+	byValue										:	BYTE;
+	byMajorVersion								:	BYTE;
+	byMinorVersion								:	BYTE;
+	nActiveEnergy								:	ULINT;
+	nActiveEnergyLoadside						:	ULINT;
+	nActivePower								:	ULINT;
+	nOperatingTime								:	UDINT;
+	
+END_VAR
+
+VAR CONSTANT
+	DALI_LINE_NUM: BYTE := 1;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bTestEnergyReporting THEN
+	//A_ActiveEnergy();
+	//A_ActivePower();
+	//A_ActiveEnergy();
+	//A_OperatingTime();
+	A_VersionNumber();
+END_IF]]></ST>
+    </Implementation>
+    <Action Name="A_VersionNumber" Id="{597eb115-417b-472f-bf6e-bd3dc6d2621e}">
+      <Implementation>
+        <ST><![CDATA[bActionBusy	:= TRUE;
+fbDALI102ReadMemoryLocation_Test.ipDALICommunication	:=	P_DALI_Background.arrfbKL6821Communication[DALI_LINE_NUM];
+
+fbDALI102ReadMemoryLocation_Test(
+	bStart					:=	TRUE,
+	nAddress 				:=	byAddress,
+	eAddressType			:=	E_DALIAddressType.Short,
+	eCommandPriority		:=	Tc3_DALI.E_DALICommandPriority.MiddleLow,
+	nMemoryBank				:=	0,
+	nOffset					:=	byOffset,
+	bBusy					=>,
+	bError					=>,
+	ipResultMessage			=>,
+	nValue					=>	byValue);
+IF(byOffset = 16#09) THEN
+	byMajorVersion	:=	byValue;
+END_IF
+IF(byOffset = 16#0A) THEN
+byMinorVersion	:=	byValue;
+	
+END_IF
+IF NOT fbDALI102ReadMemoryLocation_Test.bBusy	THEN
+		IF	fbDALI102ReadMemoryLocation_Test.bError	THEN
+			arrErr  [0]   	:= TRUE;
+			arrErrorId[0] := fbDALI102ReadMemoryLocation_Test.ipResultMessage.nEventId;
+		END_IF
+		bActionBusy		:= FALSE;
+		fbDALI102ReadMemoryLocation_Test(bStart:= FALSE );
+END_IF]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+P_SystemDK.M_nCyclic(bReset := breset );
+P_DALI_DIAG();
+DALI_Commissioning();
+P_DALI_Energy_Line();
+P_AHModbusComm();
+
+
+P_Gang_1_108();
+P_Gang_1_111A();
+
+P_Rum_1_106();
+
+P_Rum_1_111C();
+P_Rum_1_111D();
+P_Rum_1_111E();
+P_Rum_1_115();
+P_Rum_1_118();
+
+//P_Toilet_();
+//P_Toilet_2();
+//P_Toilet_2();
+
+P_Trappe_T1();
+
+
+//P_DALI_Energy_Firmware_Test();]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

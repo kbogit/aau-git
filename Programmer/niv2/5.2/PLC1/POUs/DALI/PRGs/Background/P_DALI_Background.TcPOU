@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI_Background" Id="{cf2c9d6e-7b21-4611-b8d7-177e88cdaea4}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DALI_Background
+VAR_INPUT
+END_VAR
+VAR
+	arrfbKL6821Communication		: ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF FB_KL6821Communication;
+	arrKL6821InData     	AT %I* 	: ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF Tc3_DALI.ST_KL6821InData;	
+    arrKL6821OutData   		AT %Q* 	: ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF Tc3_DALI.ST_KL6821OutData;
+
+	eCommandKBusWatchdog			:	E_DALIConfigurationCommand;
+	eCommandDI1RisingEdge			:	E_DALIConfigurationCommand;
+	eCommandDI1FallingEdge			:	E_DALIConfigurationCommand;
+	eCommandDI2RisingEdge			:	E_DALIConfigurationCommand;
+	eCommandDI2FallingEdge			:	E_DALIConfigurationCommand;
+	InitTrig						:	R_TRIG;
+	arrStep							:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF INT;
+	arrInitialize					:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	arrDefaultValues				:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	arrResetInactiveProcessImage	:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	arrDoNotLockProcessImage		:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	arrInternalPowerSupplyDisabled	:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF BOOL;
+	bFirstCycle						:	BOOL := TRUE;
+	arrRTrigInternalPowerSupply		:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF R_TRig;
+	arrFTrigInternalPowerSupply		:	ARRAY [1..DALI_Param.MAX_DALIV2_LINES] OF f_TRig;
+	iIdx: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+Tc3_DALI.GVL.eEventTraceLevel := TcEventSeverity.Critical;
+
+FOR iIdx:= 1 TO DALI_Param.MAX_DALIV2_LINES DO
+
+	IF bFirstCycle THEN
+		arrStep[iIdx] := 5;
+	END_IF
+	InitTrig (CLK := arrInitialize[iIdx]);
+	IF (InitTrig.Q) THEN
+		arrStep[iIdx] := 10;
+	END_IF
+	
+	InitTrig (CLK := arrDefaultValues[iIdx]);
+	IF (InitTrig.Q) THEN
+		arrStep[iIdx] := 20;
+	end_if
+	
+	InitTrig (CLK := arrResetInactiveProcessImage[iIdx]);
+	IF (InitTrig.Q) THEN
+		arrStep[iIdx] := 30;
+	END_IF
+	
+	arrRTrigInternalPowerSupply[iIdx] (CLK := arrInternalPowerSupplyDisabled[iIdx]);
+	arrFTrigInternalPowerSupply[iIdx] (CLK := arrInternalPowerSupplyDisabled[iIdx]);
+	IF (arrRTrigInternalPowerSupply[iIdx].Q OR arrFTrigInternalPowerSupply[iIdx].Q) THEN
+		arrStep[iIdx] := 40;	
+	END_IF
+	CASE arrStep[iIdx] OF
+	0:;
+	5: 
+		eCommandKBusWatchdog := arrfbKL6821Communication[iIdx].eCommandKBusWatchdog;
+		eCommandDI1RisingEdge := arrfbKL6821Communication[iIdx].eCommandDI1RisingEdge;
+		eCommandDI1FallingEdge := arrfbKL6821Communication[iIdx].eCommandDI1FallingEdge;
+		eCommandDI2RisingEdge := arrfbKL6821Communication[iIdx].eCommandDI2RisingEdge;
+		eCommandDI2FallingEdge := arrfbKL6821Communication[iIdx].eCommandDI2FallingEdge;
+		arrDoNotLockProcessImage[iIdx] := arrfbKL6821Communication[iIdx].bDoNotLockProcessImage;
+		arrInternalPowerSupplyDisabled[iIdx] := arrfbKL6821Communication[iIdx].bDisableInternalPowerSupply;
+		bFirstCycle := FALSE;
+		arrStep[iIdx] := 0;
+	10:
+		arrfbKL6821Communication[iIdx].eCommandKBusWatchdog := eCommandKBusWatchdog;
+		arrfbKL6821Communication[iIdx].eCommandDI1RisingEdge := eCommandDI1RisingEdge;
+		arrfbKL6821Communication[iIdx].eCommandDI1FallingEdge := eCommandDI1FallingEdge;
+		arrfbKL6821Communication[iIdx].eCommandDI2RisingEdge := eCommandDI2RisingEdge;
+		arrfbKL6821Communication[iIdx].eCommandDI2FallingEdge := eCommandDI2FallingEdge;
+		arrfbKL6821Communication[iIdx].bDoNotLockProcessImage := arrDoNotLockProcessImage[iIdx];
+		arrInitialize[iIdx] := FALSE;
+		arrfbKL6821Communication[iIdx].bInitialise := TRUE;
+		arrStep[iIdx] := 0;							
+	20:
+		eCommandKBusWatchdog := arrfbKL6821Communication[iIdx].eCommandKBusWatchdog := E_DALIConfigurationCommand.DoNothing;
+		eCommandDI1RisingEdge := arrfbKL6821Communication[iIdx].eCommandDI1RisingEdge := E_DALIConfigurationCommand.Off;
+		eCommandDI1FallingEdge := arrfbKL6821Communication[iIdx].eCommandDI1FallingEdge := E_DALIConfigurationCommand.DoNothing;
+		eCommandDI2RisingEdge := arrfbKL6821Communication[iIdx].eCommandDI2RisingEdge := E_DALIConfigurationCommand.RecallMaxLevel;
+		eCommandDI2FallingEdge := arrfbKL6821Communication[iIdx].eCommandDI2FallingEdge := E_DALIConfigurationCommand.DoNothing;
+		arrfbKL6821Communication[iIdx].bDoNotLockProcessImage := FALSE;
+		arrDefaultValues[iIdx] := FALSE;
+		arrfbKL6821Communication[iIdx].bInitialise := TRUE;
+		arrStep[iIdx] := 0;		
+	30:
+		arrResetInactiveProcessImage[iIdx] := FALSE;
+		arrfbKL6821Communication[iIdx].bResetInactiveProcessImage := TRUE;
+		arrStep[iIdx] := 0;	
+	40:
+		arrfbKL6821Communication[iIdx].bDisableInternalPowerSupply := arrInternalPowerSupplyDisabled[iIdx];
+		arrfbKL6821Communication[iIdx].bInitialise := TRUE;
+		arrStep[iIdx] := 0;	
+	END_CASE
+	
+	arrfbKL6821Communication[iIdx](	stInData := arrKL6821InData[iIdx],
+								stOutData := arrKL6821OutData[iIdx]);
+	IF (NOT arrfbKL6821Communication[iIdx].bInitialising) THEN
+			arrfbKL6821Communication[iIdx].bInitialise := FALSE;
+	END_IF	
+	IF (NOT arrfbKL6821Communication[iIdx].bProcessImageInactive) THEN
+			arrfbKL6821Communication[iIdx].bResetInactiveProcessImage := FALSE;
+		END_IF
+		
+	GVL_AHDataModbus.arrKL6821InDataStatus[iIdx] := arrKL6821InData[iIdx].nStatus;
+END_FOR								]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

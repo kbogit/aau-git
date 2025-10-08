@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_GroupSort" Id="{c51be129-2e55-4c11-8090-5c151a709025}">
+    <Declaration><![CDATA[TYPE ST_GroupSort :
+STRUCT
+	arrAddrInGroups			: ARRAY[0..63, 0..15] OF BOOL;
+	arrAddressesInEachGroup : ARRAY[0..15, 0..63] OF BYTE;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

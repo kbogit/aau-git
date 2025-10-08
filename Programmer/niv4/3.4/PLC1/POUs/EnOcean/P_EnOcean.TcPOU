@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_EnOcean" Id="{d2583012-7b8d-42b3-930e-7213eee0e992}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_EnOcean
+VAR
+	fbKL6581			: FB_KL6581;
+	stKL6581_in  AT %I* : KL6581_INPUT;
+	stKL6581_out AT %Q*	: KL6581_OUTPUT;
+	stKL6581			: STR_KL6581;
+	bInitCom			: BOOL := TRUE;
+	
+	arrEnOcean_Search	: ARRAY [1..8] OF FB_EnOcean_Search;
+	nSearchIdx			: BYTE;
+	bSerach				: BOOL;
+	arrDevices			: ARRAY [1..8] OF INT;
+	arrID				: ARRAY [1..8, 0..255] OF DWORD;
+	
+		//Trykknapper Atrium
+	fbAtriumNiveau_Tryk_PladeB				: FB_Rec_RPS_Switch;
+	fbAtriumNiveau_Tryk_Sevice				: FB_Rec_RPS_Switch;			
+
+	//Trykknapper på gange
+
+	
+	//Trykknapper i rum
+	fbRum_2_449_Tryk					: FB_Rec_RPS_Switch;
+	fbRum_3_461_Tryk					: FB_Rec_RPS_Switch;
+	fbRum_3_463_Tryk					: FB_Rec_RPS_Switch;	
+	fbRum_3_465_Tryk					: FB_Rec_RPS_Switch;
+
+	
+END_VAR
+
+VAR CONSTANT
+	byNode_1: BYTE := 1;
+	byNode_2: BYTE := 2;
+	byNode_3: BYTE := 3;
+	byNode_4: BYTE := 4;
+	byNode_5: BYTE := 5;
+	byNode_6: BYTE := 6;
+	byNode_7: BYTE := 7;
+	byNode_8: BYTE := 8;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+(* Kommunikation mit der KL6581. *)
+(* Communication with the KL6581. *)
+fbKL6581(
+	bInit			:= bInitCom,
+	nIdx			:= 2,
+	stKL6581_in		:= stKL6581_In,
+	stKL6581_out	:= stKL6581_Out,
+	bReady			=> ,
+	bBusy			=> ,
+	bError			=> ,
+	iErrorID		=> ,
+	str_KL6581		=> stKL6581);
+
+GVL_AHDataModbus.EnOceanError	:= TO_UINT(fbKL6581.iErrorID);
+(* Warten bis der Kommunikationsbaustein initialisiert wurde.*)
+(* Wait until the communication function block has been initialized. *)
+IF (NOT fbKL6581.bReady) THEN
+	RETURN;
+END_IF
+
+FOR nSearchIdx:= 1 TO 8 DO
+	arrEnOcean_Search[nSearchIdx](
+		bStart:= TRUE, 
+		str_KL6581:= stKL6581 , 
+		byNode:= nSearchIdx, 
+		bReceive=> , 
+		iDevices=>arrDevices[nSearchIdx] , 
+		ar_ID=> );
+		
+		MEMCPY(ADR(arrID[nSearchIdx,0]), ADR(arrEnOcean_Search[nSearchIdx].ar_ID), SIZEOF(arrEnOcean_Search[nSearchIdx].ar_ID)); 
+END_FOR
+
+//A_Gang_3_364()
+
+A_Rum_2_449();
+A_Rum_3_461();
+A_Rum_3_463();
+A_Rum_3_465();
+
+//AtriumNiveau
+A_AtriumNiveau();
+]]></ST>
+    </Implementation>
+    <Action Name="A_AtriumNiveau" Id="{5b863a8e-6cff-4511-86bf-f0a83cf94e37}">
+      <Implementation>
+        <ST><![CDATA[fbAtriumNiveau_Tryk_PladeB(
+	str_KL6581:=stKL6581 , 
+	byNode:=0, 
+	dw_ID:= 16#0029B92D, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_AtriumNiveau_PladeB,
+	by_Node=> , 
+	bReceive=> );
+(*
+fbAtriumNiveau_Tryk_Sevice(
+	str_KL6581:=stKL6581 , 
+	byNode:=0, 
+	dw_ID:= 16#00FEE4FE87, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_AtriumNiveau_Service, 
+	by_Node=> , 
+	bReceive=> );
+*)]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_2_449" Id="{cd578594-7230-49ca-bdfb-8373139b4762}">
+      <Implementation>
+        <ST><![CDATA[fbRum_2_449_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0029ABAE, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_2_449, 
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_3_461" Id="{429323a6-72eb-4003-ac21-af648573a8c0}">
+      <Implementation>
+        <ST><![CDATA[fbRum_3_461_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0029AADB, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_3_461, 
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_3_463" Id="{52f11426-5fed-438c-b8ea-e084c9cf1dd4}">
+      <Implementation>
+        <ST><![CDATA[fbRum_3_463_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0029AACB, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_3_463, 
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_3_465" Id="{a82357ba-c7ef-4b6f-82dc-e5124d32f39e}">
+      <Implementation>
+        <ST><![CDATA[fbRum_3_465_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0029AACE, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_3_465, 
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

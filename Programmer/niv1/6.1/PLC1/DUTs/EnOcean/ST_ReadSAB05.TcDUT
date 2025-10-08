@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <DUT Name="ST_ReadSAB05" Id="{1d601e38-9e7b-404b-b058-d1bfe61bdc22}">
+    <Declaration><![CDATA[TYPE ST_ReadSAB05 :
+STRUCT
+	bLeanBit:BOOL;
+	bActuator_Obstructed:BOOL;
+	bDetectionWindow:BOOL;
+	bFaliureTemp:BOOL;
+	bContactOpenCover:BOOL;
+	bBattery:BOOL;
+	bEnergyStorage:BOOL;
+	bEnergyInputEnabled:BOOL;
+	bServiceOn:BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

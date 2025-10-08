@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+P_SystemDK.M_nCyclic(bReset := breset );
+P_DALI_DIAG();
+DALI_Commissioning();
+P_DALI_Energy_Line();
+P_AHModbusComm();
+
+
+//Gange
+P_Gang_1_418();
+P_Gang_1_417();
+P_Gang_1_426();
+P_Gang_2_446A();
+P_Gang_7_401();
+
+//Rum
+P_Rum_1_435();
+P_Rum_1_434();
+P_Rum_1_433();
+P_Rum_1_432();
+P_Rum_1_431();
+P_Rum_1_430();
+P_Rum_1_429();
+P_Rum_1_428();
+P_Rum_1_427();
+
+P_Rum_1_425();
+P_Rum_1_424();
+P_Rum_1_422();
+P_Rum_1_421();
+
+
+//Testprogrammer
+//P_DALI_Energy_Firmware_Test();
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

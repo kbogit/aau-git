@@ -1,0 +1,537 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_Part301PushButton" Id="{db696cad-f7bc-4ebc-8c6d-b2b32487e24c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part301PushButton
+VAR_INPUT
+	ipDALICommunication			:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy						:	BOOL;
+END_VAR
+VAR
+	{region "Visu"}
+	sInputValue					:	STRING[25];
+	nInstanceError				:	BYTE;
+	nResolution					:	BYTE;
+	eEventScheme				:	E_DALIEventScheme;
+	nEventFilter				:	DWORD;
+	nRepeat						:	UINT(100..2000);
+	nStuck						:	BYTE(5..255);
+	nShort						:	UINT(0..5100);
+	nShortMin					:	UINT;
+	nDouble						:	UINT(0..2000);
+	nDoubleMin					:	UINT;
+	bRead						:	BOOL;
+	bWrite						:	BOOL;
+	bEnable						:	BOOL;
+	bButtonReleased				:	BOOL;
+	bButtonPressed				:	BOOL;
+	bShortPress					:	BOOL;
+	bDoublePress				:	BOOL;
+	bLongPressStart				:	BOOL;
+	bLongPressRepeat			:	BOOL;
+	bLongPressStop				:	BOOL;
+	bButtonStuck				:	BOOL;
+	bNoRepeatTimer				:	BOOL;
+	bNoStuckTimer				:	BOOL;
+	bNoShortTimer				:	BOOL;
+	bNoDoubleTimer				:	BOOL;
+	eEventPriority				:	E_DALIEventPriority := E_DALIEventPriority.Middle;
+{endregion}
+	nStep						:	INT;
+	nAddress					:	BYTE;
+	nInstanceAddress			:	BYTE;
+	bHideWaitSymbol				:	BOOL := TRUE;
+	nInputValue					:	LWORD;
+	nAddressInfo01				:	BYTE;
+	nAddressInfo02				:	BYTE;
+
+	fbGetInputNotification		:	FB_DALIGetInputNotification(0);
+	fb103StartQuiescentMode		:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode		:	FB_DALI103StopQuiescentMode(0);
+	fb103QueryInstanceError		:	FB_DALI103QueryInstanceError(0);
+	fb103QueryInstanceStatus	:	FB_DALI103QueryInstanceStatus(0);
+	fb103QueryResolution		:	FB_DALI103QueryResolution(0);
+	fb103QueryInputValue		:	FB_DALI103QueryInputValue(0);
+	fb103QueryEventScheme		:	FB_DALI103QueryEventScheme(0);
+	fb103QueryEventFilter		:	FB_DALI103QueryEventFilter(0);
+	fb103QueryEventPriority		:	FB_DALI103QueryEventPriority(0);
+	fb301QueryRepeatTimer		:	FB_DALI301QueryRepeatTimer(0);
+	fb301QueryStuckTimer		:	FB_DALI301QueryStuckTimer(0);
+	fb301QueryShortTimer		:	FB_DALI301QueryShortTimer(0);
+	fb301QueryShortTimerMin		:	FB_DALI301QueryShortTimerMin(0);
+	fb301QueryDoubleTimer		:	FB_DALI301QueryDoubleTimer(0);
+	fb301QueryDoubleTimerMin	:	FB_DALI301QueryDoubleTimerMin(0);
+	fb103EnableInstance			:	FB_DALI103EnableInstance(0);
+	fb103DisableInstance		:	FB_DALI103DisableInstance(0);
+	fb103SetEventScheme			:	FB_DALI103SetEventScheme(0);
+	fb103SetEventFilter			:	FB_DALI103SetEventFilter(0);
+	fb103SetEventPriority		:	FB_DALI103SetEventPriority(0);
+	fb301SetRepeatTimer			:	FB_DALI301SetRepeatTimer(0);
+	fb301SetStuckTimer			:	FB_DALI301SetStuckTimer(0);
+	fb301SetShortTimer			:	FB_DALI301SetShortTimer(0);
+	fb301SetDoubleTimer			:	FB_DALI301SetDoubleTimer(0);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bRead AND (nStep = 0)) THEN
+	nStep := 5;
+	bRead := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWrite AND (nStep = 0)) THEN
+	nStep := 1000;
+	bWrite := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+{region "Manage Dialog Selection}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bRead := FALSE;
+	bWrite := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fbGetInputNotification.ipDALICommunication := ipDALICommunication;
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103QueryInstanceError.ipDALICommunication := ipDALICommunication;
+	fb103QueryInstanceStatus.ipDALICommunication := ipDALICommunication;
+	fb103QueryResolution.ipDALICommunication := ipDALICommunication;
+	fb103QueryInputValue.ipDALICommunication := ipDALICommunication;
+	fb103QueryEventScheme.ipDALICommunication := ipDALICommunication;
+	fb103QueryEventFilter.ipDALICommunication := ipDALICommunication;
+	fb103QueryEventPriority.ipDALICommunication := ipDALICommunication;
+	fb301QueryRepeatTimer.ipDALICommunication := ipDALICommunication;
+	fb301QueryStuckTimer.ipDALICommunication := ipDALICommunication;
+	fb301QueryShortTimer.ipDALICommunication := ipDALICommunication;
+	fb301QueryShortTimerMin.ipDALICommunication := ipDALICommunication;
+	fb301QueryDoubleTimer.ipDALICommunication := ipDALICommunication;
+	fb301QueryDoubleTimerMin.ipDALICommunication := ipDALICommunication;
+	fb103EnableInstance.ipDALICommunication := ipDALICommunication;
+	fb103DisableInstance.ipDALICommunication := ipDALICommunication;
+	fb103SetEventScheme.ipDALICommunication := ipDALICommunication;
+	fb103SetEventFilter.ipDALICommunication := ipDALICommunication;
+	fb103SetEventPriority.ipDALICommunication := ipDALICommunication;
+	fb301SetRepeatTimer.ipDALICommunication := ipDALICommunication;
+	fb301SetStuckTimer.ipDALICommunication := ipDALICommunication;
+	fb301SetShortTimer.ipDALICommunication := ipDALICommunication;
+	fb301SetDoubleTimer.ipDALICommunication := ipDALICommunication;
+{endregion}
+{region "Read Notifications"}
+	CASE eEventScheme OF
+	0:
+		nAddressInfo01 := 1;
+		nAddressInfo02 := nInstanceAddress;
+	1:
+		nAddressInfo01 := nAddress;
+		nAddressInfo02 := 1;
+	2:
+		nAddressInfo01 := nAddress;
+		nAddressInfo02 := nInstanceAddress;
+	END_CASE
+
+	fbGetInputNotification(	bEnable := TRUE,
+							eEventScheme := eEventScheme,
+							nAddressInfo1 := nAddressInfo01,
+							nAddressInfo2 := nAddressInfo02,
+							nEventInfo => nInputValue);
+	CASE fbGetInputNotification.nEventInfo OF
+		0: sInputValue := 'Push button released';
+		1: sInputValue := 'Push button pressed';
+		2: sInputValue := 'Short press';
+		5: sInputValue := 'Double press';
+		9: sInputValue := 'Long press start';
+		11: sInputValue := 'Long press repeat';
+		12: sInputValue := 'Long press stop';
+		14: sInputValue := 'Button free';
+		15: sInputValue := 'Button stuck';
+	END_CASE
+{endregion}
+{region "Read"}
+5:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart := FALSE);
+		nStep := 10;
+	END_IF
+{endregion}
+10:
+{region "Query Instance Error"}
+	fb103QueryInstanceError(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nInstanceError => nInstanceError);
+	IF (NOT fb103QueryInstanceError.bBusy) THEN
+		fb103QueryInstanceError(bStart := FALSE);
+		nStep := 20;
+	END_IF
+{endregion}
+20:
+{region "Query Instance Status"}
+	fb103QueryInstanceStatus(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								nInstanceAddress := nInstanceAddress,
+								eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103QueryInstanceStatus.bBusy) THEN
+		fb103QueryInstanceStatus(bStart := FALSE);
+		IF (fb103QueryInstanceStatus.nInstanceStatus.1) THEN
+			bEnable := TRUE;
+		END_IF
+		nStep := 30;
+	END_IF
+30:
+{region "Query Resolution"}
+	fb103QueryResolution(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nResolution => nResolution);
+	IF (NOT fb103QueryResolution.bBusy) THEN
+		fb103QueryResolution(bStart := FALSE);
+		nStep := 40;
+	END_IF
+{endregion}
+40:
+{region "Query Input Value"}
+	fb103QueryInputValue(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nResolution := nResolution);
+	IF (NOT fb103QueryInputValue.bBusy) THEN
+		fb103QueryInputValue(bStart := FALSE);
+		CASE fb103QueryInputValue.nInputValue OF
+			0: sInputValue := 'Push button released';
+			1: sInputValue := 'Push button pressed';
+			2: sInputValue := 'Short press';
+			5: sInputValue := 'Double press';
+			9: sInputValue := 'Long press start';
+			11: sInputValue := 'Long press repeat';
+			12: sInputValue := 'Long press stop';
+			14: sInputValue := 'Button free';
+			15: sInputValue := 'Button stuck';
+		END_CASE
+		nStep := 50;
+	END_IF
+{endregion}
+50:
+{region "Query Event Scheme"}
+	fb103QueryEventScheme(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eEventScheme => eEventScheme);
+	IF (NOT fb103QueryEventScheme.bBusy) THEN
+		fb103QueryEventScheme(bStart := FALSE);
+		nStep := 60;
+	END_IF
+{endregion}
+60:
+{region "Query Event Filter"}
+	fb103QueryEventFilter(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nEventFilter => nEventFilter);
+	IF (NOT fb103QueryEventFilter.bBusy) THEN
+		fb103QueryEventFilter(bStart := FALSE);
+		bButtonReleased := nEventFilter.0;
+		bButtonPressed := nEventFilter.1;
+		bShortPress := nEventFilter.2;
+		bDoublePress := nEventFilter.3;
+		bLongPressStart := nEventFilter.4;
+		bLongPressRepeat := nEventFilter.5;
+		bLongPressStop := nEventFilter.6;
+		bButtonStuck := nEventFilter.7;
+		nStep := 70;
+	END_IF
+{endregion}
+70:
+{region "Query Repeat Timer"}
+	fb301QueryRepeatTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	nRepeat := (fb301QueryRepeatTimer.nRepeat * 20);
+	IF (NOT fb301QueryRepeatTimer.bBusy) THEN
+		fb301QueryRepeatTimer(bStart := FALSE);
+		nStep := 80;
+	END_IF
+{endregion}
+80:
+{region "Query Stuck Timer"}
+	fb301QueryStuckTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nStuck => nStuck);
+	IF (NOT fb301QueryStuckTimer.bBusy) THEN
+		fb301QueryStuckTimer(bStart := FALSE);
+		nStep := 90;
+	END_IF
+{endregion}
+90:
+{region "Query Short Timer"}
+	fb301QueryShortTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	nShort := (fb301QueryShortTimer.nShort * 20);
+	IF (NOT fb301QueryShortTimer.bBusy) THEN
+		fb301QueryShortTimer(bStart := FALSE);
+		nStep := 95;
+	END_IF
+{endregion}
+95:
+{region "Query Short Timer Min"}
+	fb301QueryShortTimerMin(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	nShortMin := (fb301QueryShortTimerMin.nShortMin * 20);
+	IF (NOT fb301QueryShortTimerMin.bBusy) THEN
+		fb301QueryShortTimerMin(bStart := FALSE);
+		nStep := 100;
+	END_IF
+{endregion}
+100:
+{region "Query Double Timer"}
+	fb301QueryDoubleTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	nDouble := (fb301QueryDoubleTimer.nDouble * 20);
+	IF (NOT fb301QueryDoubleTimer.bBusy) THEN
+		fb301QueryDoubleTimer(bStart := FALSE);
+		nStep := 105;
+	END_IF
+{endregion}
+105:
+{region "Query Double Timer"}
+	fb301QueryDoubleTimerMin(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								nInstanceAddress := nInstanceAddress,
+								eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	nDoubleMin := (fb301QueryDoubleTimerMin.nDoubleMin * 20);
+	IF (NOT fb301QueryDoubleTimerMin.bBusy) THEN
+		fb301QueryDoubleTimerMin(bStart := FALSE);
+		nStep := 110;
+	END_IF
+{endregion}
+110:
+{region "Query Event Priority"}
+	fb103QueryEventPriority(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eEventPriority => eEventPriority);
+	IF (NOT fb103QueryEventPriority.bBusy) THEN
+		fb103QueryEventPriority(bStart := FALSE);
+		nStep := 120;
+	END_IF 
+{endregion}
+120:
+{region "Stop Qiescent Mode"}
+	fb103StopQuiescentMode(	bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(	bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+{region "Write"}
+1000:
+{region "Enable or Disable Instance"}
+	IF (bEnable) THEN
+		fb103EnableInstance(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+		IF (NOT fb103EnableInstance.bBusy) THEN
+			fb103EnableInstance(bStart := FALSE);
+			nStep := 1010;
+		END_IF
+	ELSE
+		fb103DisableInstance(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								nInstanceAddress := nInstanceAddress,
+								eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+		IF (NOT fb103DisableInstance.bBusy) THEN
+			fb103DisableInstance(bStart := FALSE);
+			nStep := 0;
+		END_IF
+	END_IF
+{endregion}
+1010:
+{region "Set Event Scheme"}
+	fb103SetEventScheme(bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						nInstanceAddress := nInstanceAddress,
+						eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						eEventScheme := eEventScheme);
+	IF (NOT fb103SetEventScheme.bBusy) THEN
+		fb103SetEventScheme(bStart := FALSE);
+		nStep := 1020;
+	END_IF
+{endregion}
+1020:
+{region "Set Event Filter"}
+	nEventFilter.0 := bButtonReleased;
+	nEventFilter.1 := bButtonPressed;
+	nEventFilter.2 := bShortPress;
+	nEventFilter.3 := bDoublePress;
+	nEventFilter.4 := bLongPressStart;
+	nEventFilter.5 := bLongPressRepeat;
+	nEventFilter.6 := bLongPressStop;
+	nEventFilter.7 := bButtonStuck;
+	fb103SetEventFilter(bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						nInstanceAddress := nInstanceAddress,
+						eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+						nEventFilter := nEventFilter);
+	IF (NOT fb103SetEventFilter.bBusy) THEN
+		fb103SetEventFilter(bStart := FALSE);
+		nStep := 1030;
+	END_IF
+{endregion}
+1030:
+{region "Set Repeat Timer"}
+	IF (bNoRepeatTimer) THEN
+		nStep := 1040;
+	ELSE
+		fb301SetRepeatTimer(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nRepeat := TO_BYTE (nRepeat / 20));
+		IF (NOT fb301SetRepeatTimer.bBusy) THEN
+			fb301SetRepeatTimer(bStart := FALSE);
+			nStep := 1040;
+		END_IF
+	END_IF
+{endregion}
+1040:
+{region "Set Stuck Timer"}
+	IF (bNoStuckTimer) THEN
+		nStep := 1050;
+	ELSE
+		fb301SetStuckTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nStuck := nStuck);
+		IF (NOT fb301SetStuckTimer.bBusy) THEN
+			fb301SetStuckTimer(bStart := FALSE);
+			nStep := 1050;
+		END_IF
+	END_IF
+{endregion}
+1050:
+{region "Set Short Timer"}
+	IF (bNoShortTimer) THEN
+		nStep := 1060;
+	ELSE
+		fb301SetShortTimer(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nShort := TO_BYTE(nShort / 20));
+		IF (NOT fb301SetShortTimer.bBusy) THEN
+			fb301SetShortTimer(bStart := FALSE);
+			nStep := 1060;
+		END_IF
+	END_IF
+{endregion}
+1060:
+{region "Set Double Timer"}
+	IF (bNoDoubleTimer) THEN
+		nStep := 1070;
+	ELSE
+		fb301SetDoubleTimer(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nDouble := TO_BYTE(nDouble / 20));
+		IF (NOT fb301SetDoubleTimer.bBusy) THEN
+			fb301SetDoubleTimer(bStart := FALSE);
+			nStep := 1070;
+		END_IF
+	END_IF
+1070:
+{region "Set Event Priority"}
+	fb103SetEventPriority(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							nInstanceAddress := nInstanceAddress,
+							eInstanceAddressType := Tc3_DALI.E_DALIInstanceAddressType.InstanceNumber,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eEventPriority := eEventPriority);
+	IF (NOT fb103SetEventPriority.bBusy) THEN
+		fb103SetEventPriority(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+END_CASE
+{endregion}
+{endregion}]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

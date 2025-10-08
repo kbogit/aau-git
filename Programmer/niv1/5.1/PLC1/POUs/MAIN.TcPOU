@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+P_SystemDK.M_nCyclic(bReset := breset );
+P_DALI_DIAG();
+DALI_Commissioning();
+P_DALI_Energy_Line();
+P_AHModbusComm();
+P_DALI_Background();
+
+//Gange
+P_Gang_5_146();
+P_Gang_5_149A();
+P_Gang_5_141A();
+P_Gang_5_145B();
+P_Gang_5_149();
+P_Gang_5_153A();
+P_Gang_5_153B();
+P_Gang_5_153C();
+P_Gang_5_153D();
+P_Gang_5_135A();
+P_Gang_7_119();
+
+//FoldeDøre
+P_Foldedoer_5_125();
+
+//Rum
+P_Rum_5_125();
+P_Rum_5_127();
+P_Rum_5_145A();
+P_Rum_5_111B();
+
+//Trapper
+P_Trappe_T5();
+
+//Testprogrammer
+//P_DALI_Energy_Firmware_Test();
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

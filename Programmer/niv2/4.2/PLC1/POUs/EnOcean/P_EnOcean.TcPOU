@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_EnOcean" Id="{d2583012-7b8d-42b3-930e-7213eee0e992}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_EnOcean
+VAR
+	fbKL6581			: FB_KL6581;
+	stKL6581_in  AT %I* : KL6581_INPUT;
+	stKL6581_out AT %Q*	: KL6581_OUTPUT;
+	stKL6581			: STR_KL6581;
+	bInitCom			: BOOL := TRUE;
+	
+	arrEnOcean_Search	: ARRAY [1..8] OF FB_EnOcean_Search;
+	nSearchIdx			: BYTE;
+	bSerach				: BOOL;
+	arrDevices			: ARRAY [1..8] OF INT;
+	arrID				: ARRAY [1..8, 0..255] OF DWORD;
+	
+	//Trykknapper Atrium
+	fbGang_3_109_Kantine_Tryk_PladeA	: FB_Rec_RPS_Switch;
+	fbAtriumNiveau_Tryk_PladeB				: FB_Rec_RPS_Switch;
+	fbAtriumNiveau_Tryk_Sevice				: FB_Rec_RPS_Switch;
+	
+	//Trykknapper på gange
+	fbGang_4_211_Tryk_Indgang				: FB_Rec_RPS_Switch;
+	fbGang_4_211_Tryk_Ekstra					: FB_Rec_RPS_Switch;
+	
+	//Trykknapper i rum
+	fbRum_4_206_Tryk_Indgang					: FB_Rec_RPS_Switch;
+	fbRum_4_206_Tryk_Ekstra					: FB_Rec_RPS_Switch;
+	
+	fbRum_4_207_Tryk_Indgang					: FB_Rec_RPS_Switch;
+	fbRum_4_207_Tryk_Ekstra					: FB_Rec_RPS_Switch;
+	
+	fbRum_4_211A_Tryk_Indgang				: FB_Rec_RPS_Switch;
+	fbRum_4_211A_Tryk_Ekstra					: FB_Rec_RPS_Switch;
+	
+	fbRum_4_213_Tryk_Indgang					: FB_Rec_RPS_Switch;
+	fbRum_4_213_Tryk_Pendler					: FB_Rec_RPS_Switch;
+	
+	fbRum_4_215_Tryk								: FB_Rec_RPS_Switch;
+	
+END_VAR
+
+VAR CONSTANT
+	byNode_1: BYTE := 1;
+	byNode_2: BYTE := 2;
+	byNode_3: BYTE := 3;
+	byNode_4: BYTE := 4;
+	byNode_5: BYTE := 5;
+	byNode_6: BYTE := 6;
+	byNode_7: BYTE := 7;
+	byNode_8: BYTE := 8;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+(* Kommunikation mit der KL6581. *)
+(* Communication with the KL6581. *)
+fbKL6581(
+	bInit			:= bInitCom,
+	nIdx			:= 2,
+	stKL6581_in		:= stKL6581_In,
+	stKL6581_out	:= stKL6581_Out,
+	bReady			=> ,
+	bBusy			=> ,
+	bError			=> ,
+	iErrorID		=> ,
+	str_KL6581		=> stKL6581);
+	
+GVL_AHDataModbus.EnOceanError	:= TO_UINT(fbKL6581.iErrorID);
+
+(* Warten bis der Kommunikationsbaustein initialisiert wurde.*)
+(* Wait until the communication function block has been initialized. *)
+IF (NOT fbKL6581.bReady) THEN
+	RETURN;
+END_IF
+
+FOR nSearchIdx:= 1 TO 8 DO
+	arrEnOcean_Search[nSearchIdx](
+		bStart:= TRUE, 
+		str_KL6581:= stKL6581 , 
+		byNode:= nSearchIdx, 
+		bReceive=> , 
+		iDevices=>arrDevices[nSearchIdx] , 
+		ar_ID=> );
+		
+		MEMCPY(ADR(arrID[nSearchIdx,0]), ADR(arrEnOcean_Search[nSearchIdx].ar_ID), SIZEOF(arrEnOcean_Search[nSearchIdx].ar_ID)); 
+END_FOR
+
+//Atrium Niveauer
+A_AtriumNiveau();
+
+//Gange
+A_Gang_1_309_Kantine();
+A_Gang_4_211();
+
+//Rum
+A_Rum_4_206();
+A_Rum_4_207();
+A_Rum_4_211A();
+A_Rum_4_213();
+A_Rum_4_215();]]></ST>
+    </Implementation>
+    <Action Name="A_AtriumNiveau" Id="{5b863a8e-6cff-4511-86bf-f0a83cf94e37}">
+      <Implementation>
+        <ST><![CDATA[fbAtriumNiveau_Tryk_PladeB(
+	str_KL6581:=stKL6581 , 
+	byNode:=0 , 
+	dw_ID:= 16#0029B92D, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_AtriumNiveau_PladeB,
+	by_Node=> , 
+	bReceive=> );
+(*
+fbAtriumNiveau_Tryk_Sevice(
+	str_KL6581:=stKL6581 , 
+	byNode:=0, 
+	dw_ID:= 16#00FEE4FE87, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_AtriumNiveau_Service, 
+	by_Node=> , 
+	bReceive=> );
+	*)
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Gang_1_309_Kantine" Id="{f555a0ef-4d9c-47b3-bdd1-c1178db0060c}">
+      <Implementation>
+        <ST><![CDATA[fbGang_3_109_Kantine_Tryk_PladeA(
+	str_KL6581:=stKL6581 , 
+	byNode:=0, 
+	dw_ID:= 16#0029B976, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_3_109_PladeA, 
+	by_Node=> , 
+	bReceive=> );
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Gang_4_211" Id="{4fa43bf3-3fb4-4c7c-9073-d393dd26065f}">
+      <Implementation>
+        <ST><![CDATA[fbGang_4_211_Tryk_Indgang(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029EDF3, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_4_211_Indgang, 
+	by_Node=> , 
+	bReceive=> );
+	
+fbGang_4_211_Tryk_Ekstra(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AB75, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Gang_4_211_Ekstra, 
+	by_Node=> , 
+	bReceive=> );
+	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_4_206" Id="{7acf2bfa-7bbe-4bcc-8cf4-00f5aab27074}">
+      <Implementation>
+        <ST><![CDATA[fbRum_4_206_Tryk_Indgang(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#002F29CA, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_206_Indgang, 
+	by_Node=> , 
+	bReceive=> );
+	
+fbRum_4_206_Tryk_Ekstra(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#00290ED4, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_206_Ekstra, 
+	by_Node=> , 
+	bReceive=> );
+	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_4_207" Id="{5d80bfa3-2178-45bb-a25a-74edcc9649a7}">
+      <Implementation>
+        <ST><![CDATA[fbRum_4_207_Tryk_Indgang(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AD3E, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_207_Indgang, 
+	by_Node=> , 
+	bReceive=> );
+	
+	fbRum_4_207_Tryk_Ekstra(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4, 
+	dw_ID:= 16#0029AD8A, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_207_Ekstra, 
+	by_Node=> , 
+	bReceive=> );]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_4_211A" Id="{4cd3eeb6-2be1-493d-bae5-b58d60ea4981}">
+      <Implementation>
+        <ST><![CDATA[fbRum_4_211A_Tryk_Indgang(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AD5B, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_211A_Indgang, 
+	by_Node=> , 
+	bReceive=> );
+	
+fbRum_4_211A_Tryk_Ekstra(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AD80, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_211A_Ekstra, 
+	by_Node=> , 
+	bReceive=> );
+	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_4_213" Id="{2819a58a-c020-41d2-8c86-7387161a9e5b}">
+      <Implementation>
+        <ST><![CDATA[fbRum_4_213_Tryk_Indgang(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AB5C, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_213_Indgang, 
+	by_Node=> , 
+	bReceive=> );
+	
+fbRum_4_213_Tryk_Pendler(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#FEE4ED20, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_213_Pendler, 
+	by_Node=> , 
+	bReceive=> );
+	]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_Rum_4_215" Id="{b983be4a-4b81-482e-a843-f20dce6946e3}">
+      <Implementation>
+        <ST><![CDATA[fbRum_4_215_Tryk(
+	str_KL6581:=stKL6581 , 
+	byNode:=byNode_4 , 
+	dw_ID:= 16#0029AADE, 
+	str_EnOceanSwitch=> GVL_EnOcean.strEnOceanSwitch_Rum_4_215, 
+	by_Node=> , 
+	bReceive=> );
+	
+	]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>

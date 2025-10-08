@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DigTest" Id="{356e4b2d-6d30-4d5f-b696-e26568458a41}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DigTest
+VAR
+	DigIn1		AT %I*	: BOOL;
+	DigIn2						: BOOL;
+	DigIn3		AT %I*	: BOOL;
+	DigIn4		AT %I*	: BOOL;
+	DigIn5		AT %I*	: BOOL;
+	DigIn6		AT %I*	: BOOL;
+	DigIn7		AT %I*	: BOOL;
+	DigIn8		AT %I*	: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{6bf17237-b1a6-4c57-bf47-1238f1ca1a56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	nAlive: INT;
+	breset: BOOL;
+	nDemoVariable : INT;
+	nCX8200_State	AT %I*	: UINT;
+END_VAR
+
+VAR PERSISTENT
+	nDemoVar_Persist: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nAlive:= nAlive + 1;
+GVL_AHDataModbus.nCX8200_State_MB := nCX8200_State;
+
+P_SystemDK.M_nCyclic(bReset := breset );
+P_DALI_DIAG();
+			//P_EnOcean(); Testing fast task
+DALI_Commissioning();
+P_DALI_Background();
+
+
+P_DALI_Energy_Line();
+P_AHModbusComm();
+
+//Gange
+P_Gang_4_308();
+P_Gang_4_310A();
+P_Gang_4_313();
+P_gang_3_309();
+
+//Rum
+P_Rum_3_329();
+P_Rum_4_307();
+P_Rum_4_311();
+P_Rum_4_313();
+P_Rum_4_316();
+P_Rum_4_317();
+P_Rum_4_321();
+P_Rum_4_322();
+
+
+//P_DALI_Energy_Firmware_Test();
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

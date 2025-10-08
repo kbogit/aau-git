@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI_Energy_Line" Id="{8c290f8a-5fb8-4aa0-86f7-97b27a886469}" SpecialFunc="None">
+    <Declaration><![CDATA[(*
+EnergyReporting reads ActiveEnergy (part 252) for all present ballasts on all (configured) DALI-lines where GVL_DALI.g_arrEnergyData[*DALI-line*,*ballast*].bHasEnergyData is TRUE.
+Results are stored in GVL_DALI.g_arrEnergyData[*DALI-line*,*ballast*].fActiveEnergy. Energy Data for individual ballasts is NOT persistent.
+The engergy sum per DALI-Line (Wh) and Total Energy (kWh) are persistent.
+
+If bCheckActiveEnergy is TRUE, all present ballasts are queried for ActiveEnergy and bHasEnergyData is updated accordingly.
+This will result in errors for any ballast that does not comply with part 252.
+Errors will not be triggered for activations where bCheckActiveEnergy is FALSE.
+
+After shutdown or download to PLC EnergyReporting is activated automatically internally with bCheckActiveEnergy set to TRUE
+
+EnergyReporting is activated automatically at TOD 0:00, 6:00, 12:00, 18:00 (configurable)
+
+NB:	The priority of commands are set to "middle" internally. Updating all lines will take a couple of minutes to finish, so be patient.
+	Other critical commands on the DALI-lines take priotity.
+	Add appropriate communication immediately after configuration of a new KL6821 terminal.
+	That is, arrfbDALI_EnergyReporting[*DALI-Line*].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[*DALI-Line*];
+*)
+
+
+PROGRAM P_DALI_Energy_Line
+VAR
+	arrfbDALI_EnergyReporting	: ARRAY[1..SH_Light.DALI_Param.MAX_DALIV2_LINES] OF FB_DALI_EnergyReporting;
+	fbDALI_EnergyDataManagement	: SH_Light.FB_DALI_EnergyDataManagement;
+	nNumOfEnergyLines			: BYTE;
+	bReadEnergyDataAllLines		: BOOL;
+	bReportingDone				: BOOL;
+	fbRTrig_ReportingDone		: R_TRIG;
+	bRTrigReportingDone			: BOOL;
+	
+	//Task scheduling
+	stLocalSystemTime 		: TIMESTRUCT;
+	fbLocalSystemTime 		: FB_LocalSystemTime;
+	bGetTime 				: BOOL := TRUE;
+	tTimeOut 				: TIME := DEFAULT_ADS_TIMEOUT;
+	bLocalSystemTimeValid	: BOOL;
+	tzID       				: E_TimeZoneID := eTimeZoneID_Invalid;
+	
+	tdSystemTime			: TOD;
+	btestTodCompare			: BOOL;
+	
+	
+END_VAR
+VAR CONSTANT
+	tdMidnight						: TOD := TOD#0:0:0;
+	tdMorning						: TOD := TOD#6:0:0;
+	tdMidDay						: TOD := TOD#12:0:0;
+	tdEvening						: TOD := TOD#18:0:0;
+	tCheckDuration					: TIME:= T#5S;
+	tdTestsum						: TOD := (tdMidnight + tCheckDuration);
+END_VAR
+
+VAR PERSISTENT
+	arrDaliLineEnergySumWh				: ARRAY[1..SH_Light.DALI_Param.MAX_DALIV2_LINES] OF LREAL;
+	fTotalEnergyWh						: LREAL;
+	nMaxControlGearOperatingHours		: UINT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+arrfbDALI_EnergyReporting[1].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[1];
+arrfbDALI_EnergyReporting[2].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[2];
+arrfbDALI_EnergyReporting[3].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[3];
+//arrfbDALI_EnergyReporting[4].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[4];
+//arrfbDALI_EnergyReporting[5].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[5];
+//arrfbDALI_EnergyReporting[6].ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[6]; // for more update SH_Light.DALI_Param.MAX_DALIV2_LINES
+
+nNumOfEnergyLines := 3;
+
+fbLocalSystemTime(
+	sNetID:= '', 
+	bEnable:= bGetTime, 
+	dwCycle:= 2, // cycle time (in seconds) , Synchronization  every 2 seconds.
+	dwOpt:= 1, //Bit 0: If this is set, the Windows system time is additionally synchronized cyclically with the hardware clock (RTC) (corresponds to the function NT_SetTimeToRTCTime).
+	tTimeout:= tTimeOut, 
+	bValid=> bLocalSystemTimeValid, 
+	systemTime=> stLocalSystemTime, 
+	tzID=> tzID);
+	
+tdSystemTime := SYSTEMTIME_TO_TOD(systemTime := stLocalSystemTime);
+IF	((tdSystemTime > tdMidnight AND tdSystemTime < (tdMidnight + tCheckDuration)) OR (tdSystemTime > tdMorning AND tdSystemTime < (tdMorning + tCheckDuration)) OR
+	(tdSystemTime > tdMidDay AND tdSystemTime < (tdMidDay + tCheckDuration)) OR (tdSystemTime > tdEvening AND tdSystemTime < (tdEvening + tCheckDuration))) THEN
+	bReadEnergyDataAllLines := TRUE;
+END_IF
+
+fbDALI_EnergyDataManagement(
+	NumOfEnergyLines				:= nNumOfEnergyLines,
+	bReadEnergyDataAllLines 		:= bReadEnergyDataAllLines,
+	arrfbDALI_EnergyReporting		:= arrfbDALI_EnergyReporting,
+	arrDaliLineEnergySum			:= arrDaliLineEnergySumWH,
+	fTotalEnergyWh					:= fTotalEnergyWh,
+	nMaxControlGearOperatingHours	:= nMaxControlGearOperatingHours,
+	bReportingDone					=> bReportingDone
+);
+GVL_AHDataModbus.nTotalEnergy10kWh := TO_UINT(TRUNC(fTotalEnergyWh*EXPT(10,-4)));  //FB_DALI_EnergyDataManagement makes sure only positive values are returned. As so, conversion from REAL to UINT is appropriate
+GVL_AHDataModbus.nMaxControlGearOperatingHours := nMaxControlGearOperatingHours;
+(*fbRTrig_ReportingDone(CLK:=bReportingDone, Q=> bRTrigReportingDone);
+IF bRTrigReportingDone THEN
+	GVL_AHDataModbus.nTotalEnergyKWH := nTotalEnergykWh;
+	GVL_AHDataModbus.nMaxControlGearOperatingHours := nMaxControlGearOperatingHours;
+END_IF*)]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

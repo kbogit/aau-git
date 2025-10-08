@@ -1,0 +1,979 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_Part202Emergency" Id="{5b2d5f32-f5fe-41b5-836f-30d01c36eff6}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_Part202Emergency
+VAR_INPUT
+	ipDALICommunication					:	I_DALICommunication;
+END_VAR
+VAR_OUTPUT
+	bBusy								:	BOOL;
+END_VAR
+VAR
+	{region "Visu"}
+	bReadCommands						:	BOOL;
+	bReadState							:	BOOL;
+	bReadParameter						:	BOOL;
+	bStartFunctionTest					:	BOOL;
+	bStopTest							:	BOOL;
+	bStartDurationTest					:	BOOL;
+	bResetFunctionTestDoneFlag			:	BOOL;
+	bResetDurationTestDoneFlag			:	BOOL;
+	bInhibit							:	BOOL;
+	bResetInhibit						:	BOOL;
+	bResetLampTime						:	BOOL;
+	bRest								:	BOOL;
+	bStartIdentification				:	BOOL;
+	bWrite								:	BOOL;
+	nBatteryCharge						:	BYTE;
+	nDurationTestResult					:	BYTE;
+	nLampEmergencyTime					:	BYTE;
+	nLampTotalOperationTime				:	BYTE;
+	sRestMode							:	STRING[5];
+	sNormalMode							:	STRING[5];
+	sEmergencyMode						:	STRING[5];
+	sExtendedEmergency					:	STRING[5];
+	sFunctionTest						:	STRING[5];
+	sDurationTest						:	STRING[5];
+	sHardwiredInhibit					:	STRING[5];
+	sHardwiredSwitch					:	STRING[5];
+
+	sCircuitFailure						:	STRING[5];
+	sBatteryDurationFailure				:	STRING[5];
+	sBatteryFailure						:	STRING[5];
+	sEmergencyLampFailure				:	STRING[5];
+	sFunctionTestExceed					:	STRING[5];
+	sDurationTestExceed					:	STRING[5];
+	sFunctionTestFailed					:	STRING[5];
+	sDurationTestFailed					:	STRING[5];
+
+	sInhibitMode						:	STRING[5];
+	sFunctionTestDoneValid				:	STRING[5];
+	sDurationTestDoneValid				:	STRING[5];
+	sBatteryFullCharged					:	STRING[5];
+	sFunctionTestRequestPending			:	STRING[5];
+	sDurationTestRequestPending			:	STRING[5];
+	sIdentificationActive				:	STRING[5];
+
+	bIntegralControlGear				:	BOOL;
+	bMaintainedControlGear				:	BOOL;
+	bSwitchtedMaintainedControlGear		:	BOOL;
+	bAutoTestCapability					:	BOOL;
+	bAdjustableEmergencyLevel			:	BOOL;
+	bHardwiredInhibitSupported			:	BOOL;
+	bPhysicalSelectionSupported			:	BOOL;
+	bRelightinRestModeSupported			:	BOOL;
+
+	nEmergencyLevel						:	BYTE;
+	nEmergencyMinLevel					:	BYTE;
+	nEmergencyMaxLevel					:	BYTE;
+	nProlongTime						:	UINT;
+	fDurationTestDelayTimeVisu			:	REAL;
+	fFunctionTestDelayTimeVisu			:	REAL;
+	nFunctionTestInterval				:	UINT;
+	nDurationTestInterval				:	UINT;
+	nTestExecutionTimeout				:	UINT;
+	nRatedDuration						:	BYTE;
+	{endregion}
+	nStep								:	INT;
+	nAddress							:	BYTE;
+	bHideWaitSymbol						:	BOOL := TRUE;
+	
+	nDurationTestDelayTime				:	UINT;
+	nFunctionTestDelayTime				:	UINT;
+	
+	fb103StartQuiescentMode				:	FB_DALI103StartQuiescentMode(0);
+	fb103StopQuiescentMode				:	FB_DALI103StopQuiescentMode(0);
+	fb202QueryBatteryCharge				:	FB_DALI202QueryBatteryCharge(0);
+	fb202QueryDurationTestResult		:	FB_DALI202QueryDurationTestResult(0);
+	fb202QueryLampEmergencyTime			:	FB_DALI202QueryLampEmergencyTime(0);
+	fb202QueryLampTotalOperationTime	:	FB_DALI202QueryLampTotalOperationTime(0);
+	fb202QueryEmergencyLevel			:	FB_DALI202QueryEmergencyLevel(0);
+	fb202QueryEmergencyMode				:	FB_DALI202QueryEmergencyMode(0);
+	fb202QueryFailureStatus				:	FB_DALI202QueryFailureStatus(0);
+	fb202QueryEmergencyStatus			:	FB_DALI202QueryEmergencyStatus(0);
+	
+	fb202QueryEmergencyMinLevel			:	FB_DALI202QueryEmergencyMinLevel(0);
+	fb202QueryEmergencyMaxLevel			:	FB_DALI202QueryEmergencyMaxLevel(0);
+	fb202QueryTestTiming				:	FB_DALI202QueryTestTiming(0);
+	fb202QueryRatedDuration				:	FB_DALI202QueryRatedDuration(0);
+	fb202QueryFeatures					:	FB_DALI202QueryFeatures(0);
+	
+	fb202SetEmergencyLevel				:	FB_DALI202SetEmergencyLevel(0);
+	fb202SetProlongTime					:	FB_DALI202SetProlongTime(0);
+	fb202SetTestDelayTime				:	FB_DALI202SetTestDelayTime(0);
+	fb202SetFunctionTestInterval		:	FB_DALI202SetFunctionTestInterval(0);
+	fb202SetDurationTestInterval		:	FB_DALI202SetDurationTestInterval(0);
+	fb202SetTestExecutionTimeout		:	FB_DALI202SetTestExecutionTimeout(0);
+	
+	fb202StartFunctionTest				:	FB_DALI202StartFunctionTest(0);
+	fb202StopTest						:	FB_DALI202StopTest(0);
+	fb202StartDurationTest				:	FB_DALI202StartDurationTest(0);
+	fb202ResetFunctionTestDoneFlag		:	FB_DALI202ResetFunctionTestDoneFlag(0);
+	fb202ResetDurationTestDoneFlag		:	FB_DALI202ResetDurationTestDoneFlag(0);
+	fb202Inhibit						:	FB_DALI202Inhibit(0);
+	fb202ReLightResetInhibit			:	FB_DALI202ReLightResetInhibit(0);
+	fb202ResetLampTime					:	FB_DALI202ResetLampTime(0);
+	fb202Rest							:	FB_DALI202Rest(0);
+	fb202StartIdentification			:	FB_DALI202StartIdentification(0);
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[{region "Detect Commands"}
+IF (bStartFunctionTest AND (nStep = 0)) THEN
+	nStep := 5;
+	bStartFunctionTest := FALSE;
+END_IF
+
+IF (bStopTest AND (nStep = 0)) THEN
+	nStep := 10;
+	bStopTest := FALSE;
+END_IF
+
+IF (bStartDurationTest AND (nStep = 0)) THEN
+	nStep := 15;
+	bStartDurationTest := FALSE;
+END_IF
+
+IF (bResetFunctionTestDoneFlag AND (nStep = 0)) THEN
+	nStep := 20;
+	bResetFunctionTestDoneFlag := FALSE;
+END_IF
+
+IF (bResetDurationTestDoneFlag AND (nStep = 0)) THEN
+	nStep := 25;
+	bResetDurationTestDoneFlag := FALSE;
+END_IF
+
+IF (bInhibit AND (nStep = 0)) THEN
+	nStep := 30;
+	bInhibit := FALSE;
+END_IF
+
+IF (bResetInhibit AND (nStep = 0)) THEN
+	nStep := 35;
+	bResetInhibit := FALSE;
+END_IF
+
+IF (bResetLampTime AND (nStep = 0)) THEN
+	nStep := 40;
+	bResetLampTime := FALSE;
+END_IF			   
+					
+IF (bRest AND (nStep = 0)) THEN
+	nStep := 45;
+	bRest := FALSE;
+END_IF
+
+IF (bStartIdentification AND (nStep = 0)) THEN
+	nStep := 50;
+	bStartIdentification := FALSE;
+END_IF
+
+IF (bReadCommands AND (nStep = 0)) THEN
+	nStep := 60;
+	bReadCommands := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bReadState AND (nStep = 0)) THEN
+	nStep := 100;
+	bReadState := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bReadParameter AND (nStep = 0)) THEN
+	nStep := 200;
+	bReadParameter := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+
+IF (bWrite AND (nStep = 0)) THEN
+	nStep := 500;
+	bWrite := FALSE;
+	bHideWaitSymbol := FALSE;
+END_IF
+{endregion}
+{region "Manage Dialog Selection}
+IF (nStep = 0) THEN
+	bBusy := FALSE;
+ELSE
+	bBusy := TRUE;
+END_IF
+{endregion}
+{region "Execute Commands"}
+CASE nStep OF
+0:
+{region "Init"}
+	bReadCommands := FALSE;
+	bReadState := FALSE;
+	bReadParameter := FALSE;
+	bWrite := FALSE;
+	bHideWaitSymbol := TRUE;
+
+	fb103StartQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb103StopQuiescentMode.ipDALICommunication := ipDALICommunication;
+	fb202QueryBatteryCharge.ipDALICommunication := ipDALICommunication;
+	fb202QueryDurationTestResult.ipDALICommunication := ipDALICommunication;
+	fb202QueryDurationTestResult.ipDALICommunication := ipDALICommunication;
+	fb202QueryLampEmergencyTime.ipDALICommunication := ipDALICommunication;
+	fb202QueryLampTotalOperationTime.ipDALICommunication := ipDALICommunication;
+	fb202QueryEmergencyMode.ipDALICommunication := ipDALICommunication;
+	fb202QueryFailureStatus.ipDALICommunication := ipDALICommunication;
+	fb202QueryEmergencyStatus.ipDALICommunication := ipDALICommunication;
+	fb202QueryEmergencyLevel.ipDALICommunication := ipDALICommunication;
+	fb202QueryEmergencyMinLevel.ipDALICommunication := ipDALICommunication;
+	fb202QueryEmergencyMaxLevel.ipDALICommunication := ipDALICommunication;
+	fb202QueryTestTiming.ipDALICommunication := ipDALICommunication;
+	fb202QueryRatedDuration.ipDALICommunication := ipDALICommunication;
+	fb202QueryFeatures.ipDALICommunication := ipDALICommunication;
+	fb202SetEmergencyLevel.ipDALICommunication := ipDALICommunication;
+	fb202SetProlongTime.ipDALICommunication := ipDALICommunication;
+	fb202SetTestDelayTime.ipDALICommunication := ipDALICommunication;
+	fb202SetFunctionTestInterval.ipDALICommunication := ipDALICommunication;
+	fb202SetDurationTestInterval.ipDALICommunication := ipDALICommunication;
+	fb202SetTestExecutionTimeout.ipDALICommunication := ipDALICommunication;
+
+	fb202StartFunctionTest.ipDALICommunication := ipDALICommunication;
+	fb202StopTest.ipDALICommunication := ipDALICommunication;
+	fb202StartDurationTest.ipDALICommunication := ipDALICommunication;
+	fb202ResetFunctionTestDoneFlag.ipDALICommunication := ipDALICommunication;
+	fb202ResetDurationTestDoneFlag.ipDALICommunication := ipDALICommunication;
+	fb202Inhibit.ipDALICommunication := ipDALICommunication;
+	fb202ReLightResetInhibit.ipDALICommunication := ipDALICommunication;
+	fb202ResetLampTime.ipDALICommunication := ipDALICommunication;
+	fb202Rest.ipDALICommunication := ipDALICommunication;
+	fb202StartIdentification.ipDALICommunication := ipDALICommunication;
+{endregion}
+{region "Commands"}
+5:
+	fb202StartFunctionTest(	bStart:= TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202StartFunctionTest.bBusy) THEN
+		fb202StartFunctionTest(bStart := FALSE);
+		nStep :=0;
+	END_IF
+10:
+	fb202StopTest(	bStart:= TRUE,
+					nAddress := nAddress,
+					eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+					eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202StopTest.bBusy) THEN
+		fb202StopTest(bStart := FALSE);
+		nStep :=0;
+	END_IF
+15:
+	fb202StartDurationTest(	bStart:= TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202StartDurationTest.bBusy) THEN
+		fb202StartDurationTest(bStart := FALSE);
+		nStep := 0;
+	END_IF
+20:
+	fb202ResetFunctionTestDoneFlag(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202ResetFunctionTestDoneFlag.bBusy) THEN
+		fb202ResetFunctionTestDoneFlag(bStart := FALSE);
+		nStep := 0;
+	END_IF
+25:
+	fb202ResetDurationTestDoneFlag(	bStart:= TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202ResetDurationTestDoneFlag.bBusy) THEN
+		fb202ResetDurationTestDoneFlag(bStart := FALSE);
+		nStep := 0;
+	END_IF
+30:
+	fb202Inhibit(	bStart := TRUE,
+					nAddress := nAddress,
+					eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+					eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202Inhibit.bBusy) THEN
+		fb202Inhibit(bStart := FALSE);
+		nStep := 0;
+	END_IF
+35:
+	fb202ReLightResetInhibit(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202ReLightResetInhibit.bBusy) THEN
+		fb202ReLightResetInhibit(bStart := FALSE);
+		nStep := 0;
+	END_IF
+40:
+	fb202ResetLampTime(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202ResetLampTime.bBusy) THEN
+		fb202ResetLampTime(bStart := FALSE);
+		nStep := 0;
+	END_IF
+45:
+	fb202Rest(	bStart := TRUE,
+				nAddress := nAddress,
+				eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+				eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202Rest.bBusy) THEN
+		fb202Rest(bStart := FALSE);
+		nStep := 0;
+	END_IF
+50:
+	fb202StartIdentification(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb202StartIdentification.bBusy) THEN
+		fb202StartIdentification(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{region "Read Command Status"}
+55:
+{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart := FALSE);
+		nStep := 60;
+	END_IF
+{endregion}
+{endregion}
+60:
+{region "Query Battery Charge"}
+	fb202QueryBatteryCharge(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryBatteryCharge.bBusy) THEN
+		fb202QueryBatteryCharge(bStart:= FALSE);
+		nBatteryCharge := fb202QueryBatteryCharge.nBatteryCharge;
+		nStep := 65;
+	END_IF
+{endregion}
+65:
+{region "Query Duration Test Result"}
+	fb202QueryDurationTestResult(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryDurationTestResult.bBusy) THEN
+		fb202QueryDurationTestResult(bStart := FALSE);
+		nDurationTestResult := (2 * fb202QueryDurationTestResult.nDurationTestResult);
+		nStep := 70;
+	END_IF
+{endregion}
+70:
+{region "Query Lamp emergency Time"}
+	fb202QueryLampEmergencyTime(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryLampEmergencyTime.bBusy) THEN
+		fb202QueryLampEmergencyTime(bStart := FALSE);
+		nLampEmergencyTime := fb202QueryLampEmergencyTime.nLampEmergencyTime;
+		nStep := 75;
+	END_IF
+{endregion}
+75:
+{region "Query Lamp total operation Time"}
+	fb202QueryLampTotalOperationTime(	bStart := TRUE,
+										nAddress := nAddress,
+										eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+										eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryLampTotalOperationTime.bBusy) THEN
+		fb202QueryLampTotalOperationTime(bStart:= FALSE);
+		nLampTotalOperationTime := (4 * fb202QueryLampTotalOperationTime.nLampTotalOperationTime);
+		nStep := 80;
+	END_IF
+{endregion}
+80:
+{region "Stop Quiescent Mode"}
+	fb103StopQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(bStart := FALSE);
+		nStep := 0;
+	END_IF
+	{endregion}
+
+{region "Read Status"}
+100:
+{region "Query Emergency Mode"}
+	fb202QueryEmergencyMode(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryEmergencyMode.bBusy) THEN
+		fb202QueryEmergencyMode(bStart:= FALSE);
+		sRestMode := SEL(fb202QueryEmergencyMode.nEmergencyMode.0, 'FALSE', 'TRUE');
+		sNormalMode := SEL(fb202QueryEmergencyMode.nEmergencyMode.1, 'FALSE', 'TRUE');
+		sEmergencyMode := SEL(fb202QueryEmergencyMode.nEmergencyMode.2, 'FALSE', 'TRUE');
+		sExtendedEmergency := SEL(fb202QueryEmergencyMode.nEmergencyMode.3, 'FALSE', 'TRUE');
+		sFunctionTest := SEL(fb202QueryEmergencyMode.nEmergencyMode.4, 'FALSE', 'TRUE');
+		sDurationTest := SEL(fb202QueryEmergencyMode.nEmergencyMode.5, 'FALSE', 'TRUE');
+		sHardwiredInhibit := SEL(fb202QueryEmergencyMode.nEmergencyMode.6, 'FALSE', 'TRUE');
+		sHardwiredSwitch := SEL(fb202QueryEmergencyMode.nEmergencyMode.7, 'FALSE', 'TRUE');
+		nStep := 110;
+	END_IF
+{endregion}
+110:
+{region "Query Failure Status"}
+	fb202QueryFailureStatus(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryFailureStatus.bBusy) THEN
+		fb202QueryFailureStatus(bStart := FALSE);
+		sCircuitFailure := SEL(fb202QueryFailureStatus.nFailureStatus.0, 'FALSE', 'TRUE');
+		sBatteryDurationFailure := SEL(fb202QueryFailureStatus.nFailureStatus.1, 'FALSE', 'TRUE');
+		sBatteryFailure := SEL(fb202QueryFailureStatus.nFailureStatus.2, 'FALSE', 'TRUE');
+		sEmergencyLampFailure := SEL(fb202QueryFailureStatus.nFailureStatus.3, 'FALSE', 'TRUE');
+		sFunctionTestExceed := SEL(fb202QueryFailureStatus.nFailureStatus.4, 'FALSE', 'TRUE');
+		sDurationTestExceed := SEL(fb202QueryFailureStatus.nFailureStatus.5, 'FALSE', 'TRUE');
+		sFunctionTestFailed := SEL(fb202QueryFailureStatus.nFailureStatus.6, 'FALSE', 'TRUE');
+		sDurationTestFailed := SEL(fb202QueryFailureStatus.nFailureStatus.7, 'FALSE', 'TRUE');
+		nStep := 120;
+	END_IF
+{endregion}
+120:
+{region "Query Emergency Status"}
+	fb202QueryEmergencyStatus(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryEmergencyStatus.bBusy) THEN
+		fb202QueryEmergencyStatus(bStart := FALSE);
+		sInhibitMode := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.0, 'FALSE', 'TRUE');
+		sFunctionTestDoneValid := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.1, 'FALSE', 'TRUE');
+		sDurationTestDoneValid := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.2, 'FALSE', 'TRUE');
+		sBatteryFullCharged := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.3, 'FALSE', 'TRUE');
+		sFunctionTestRequestPending := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.4, 'FALSE', 'TRUE');
+		sDurationTestRequestPending := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.5, 'FALSE', 'TRUE');
+		sIdentificationActive := SEL(fb202QueryEmergencyStatus.nEmergencyStatus.6, 'FALSE', 'TRUE');
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+{region "Read Parameters"}
+200:
+	{region "Start Qiescent Mode"}
+	fb103StartQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StartQuiescentMode.bBusy) THEN
+		fb103StartQuiescentMode(bStart := FALSE);
+		nStep := 210;
+	END_IF
+{endregion}
+210:
+{region "Query Emergency Level"}
+	fb202QueryEmergencyLevel(	bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryEmergencyLevel.bBusy) THEN
+		fb202QueryEmergencyLevel (bStart := FALSE);
+		nEmergencyLevel := fb202QueryEmergencyLevel.nEmergencyLevel;
+		nStep := 220;
+	END_IF
+{endregion}
+220:
+{region "Query Emergency Min Level"}
+	fb202QueryEmergencyMinLevel(bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryEmergencyMinLevel.bBusy) THEN
+		fb202QueryEmergencyMinLevel (bStart := FALSE);
+		nEmergencyMinLevel := fb202QueryEmergencyMinLevel.nEmergencyMinLevel;
+		nStep := 230;
+	END_IF
+{endregion}
+230:
+{region "Query Emergency Max Level"}
+	fb202QueryEmergencyMaxLevel(bStart := TRUE,
+								nAddress := nAddress,
+								eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+								eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryEmergencyMaxLevel.bBusy) THEN
+		fb202QueryEmergencyMaxLevel (bStart := FALSE);
+		nEmergencyMaxLevel := fb202QueryEmergencyMaxLevel.nEmergencyMaxLevel;
+		nStep := 240;
+	END_IF
+{endregion}
+240: 
+{region "Query Prolong Time"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming:= Tc3_DALI.E_DALITestTiming.ProlongTime);
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nProlongTime := (fb202QueryTestTiming.nValue * 30);
+		nStep := 250;
+	END_IF
+{endregion}
+250:
+{region "Query Function Test Delay Time"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming:= Tc3_DALI.E_DALITestTiming.FunctionTestDelayTime );
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nFunctionTestDelayTime := (fb202QueryTestTiming.nValue * 15);
+		fFunctionTestDelayTimeVisu := TO_REAL(nFunctionTestDelayTime)/ 60;
+		nStep := 260;
+	END_IF
+{endregion}
+260:
+{region "Query Duration Test Delay Time"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming := Tc3_DALI.E_DALITestTiming.DurationTestDelayTime);
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nDurationTestDelayTime := (fb202QueryTestTiming.nValue * 15);
+		fDurationTestDelayTimeVisu := TO_REAL(nDurationTestDelayTime) / 60;
+		nStep := 270;
+	END_IF
+{endregion}
+270:
+{region "Query Function Test Interval"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming:= Tc3_DALI.E_DALITestTiming.FunctionTestInterval);
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nFunctionTestInterval := fb202QueryTestTiming.nValue;
+		nStep := 280;
+	END_IF
+{endregion}
+280:
+{region "Query Duration Test Interval"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming:= Tc3_DALI.E_DALITestTiming.DurationTestInterval);
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nDurationTestInterval := fb202QueryTestTiming.nValue;
+		nStep := 290;
+	END_IF
+{endregion}
+290:
+{region "Query Test Execution Timeout"}
+	fb202QueryTestTiming(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							eTestTiming:= Tc3_DALI.E_DALITestTiming.TestExecutionTimeout);
+	IF (NOT fb202QueryTestTiming.bBusy) THEN
+		fb202QueryTestTiming (bStart := FALSE);
+		nTestExecutionTimeout := fb202QueryTestTiming.nValue;
+		nStep := 300;
+	END_IF
+{endregion}
+300:
+{region "Query Rated Duration"}
+	fb202QueryRatedDuration(bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryRatedDuration.bBusy) THEN
+		fb202QueryRatedDuration (bStart := FALSE);
+		nRatedDuration := ( 2 * fb202QueryRatedDuration.nRatedDuration);
+		nStep := 310;
+	END_IF
+{endregion}
+310:
+{region "Query Features"}
+	fb202QueryFeatures(	bStart := TRUE,
+						nAddress := nAddress,
+						eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+						eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle );
+	IF (NOT fb202QueryFeatures.bBusy) THEN
+		fb202QueryFeatures (bStart := FALSE);
+		bIntegralControlGear	:= fb202QueryFeatures.nFeatures.0;
+		bMaintainedControlGear	:= fb202QueryFeatures.nFeatures.1;
+		bSwitchtedMaintainedControlGear	:= fb202QueryFeatures.nFeatures.2;
+		bAutoTestCapability	:= fb202QueryFeatures.nFeatures.3;
+		bAdjustableEmergencyLevel	:= fb202QueryFeatures.nFeatures.4;
+		bHardwiredInhibitSupported	:= fb202QueryFeatures.nFeatures.5;
+		bPhysicalSelectionSupported	:= fb202QueryFeatures.nFeatures.6;
+		bRelightinRestModeSupported	:= fb202QueryFeatures.nFeatures.7;
+		nStep := 320;
+	END_IF
+{endregion}
+320:
+{region "Stop Quiescent Mode"}
+	 fb103StopQuiescentMode(bStart := TRUE,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Broadcast,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle);
+	IF (NOT fb103StopQuiescentMode.bBusy) THEN
+		fb103StopQuiescentMode(bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+{region "Write Parameters"}
+500:
+{region "Set Emergency Level"}
+	fb202SetEmergencyLevel(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nEmergencyLevel :=  nEmergencyLevel);
+	IF (NOT fb202SetEmergencyLevel.bBusy) THEN
+		fb202SetEmergencyLevel (bStart := FALSE);
+		nStep := 510;
+	END_IF
+{endregion}
+510:
+{region "Set Prolong Time"}
+	fb202SetProlongTime(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nProlongTime:= TO_BYTE(nProlongTime / 30));
+	IF (NOT fb202SetProlongTime.bBusy) THEN
+		fb202SetProlongTime (bStart := FALSE);
+		nStep := 520;
+	END_IF
+{endregion}
+520:
+	nDurationTestDelayTime := TO_UINT((fDurationTestDelayTimeVisu *60) /15);
+	fb202SetTestDelayTime(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nTestDelayTime := nDurationTestDelayTime);
+	IF (NOT fb202SetTestDelayTime.bBusy) THEN
+		fb202SetTestDelayTime (bStart := FALSE);
+		nStep := 530;
+	END_IF
+530:
+	fb202SetDurationTestInterval(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nDurationTestInterval := TO_BYTE(nDurationTestInterval));
+	IF (NOT fb202SetDurationTestInterval.bBusy) THEN
+		fb202SetDurationTestInterval(bStart := FALSE);
+		nStep := 540;
+	END_IF
+{endregion}
+{region "Set Function Test Delay time and Function Test Interval"}
+540:
+	nFunctionTestDelayTime := TO_UINT(fFunctionTestDelayTimeVisu * 60 / 15);
+	fb202SetTestDelayTime(	bStart := TRUE,
+							nAddress := nAddress,
+							eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+							eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+							nTestDelayTime := nFunctionTestDelayTime);
+	IF (NOT fb202SetTestDelayTime.bBusy) THEN
+		fb202SetTestDelayTime(bStart := FALSE);
+		nStep := 550;
+	END_IF
+550:
+	fb202SetFunctionTestInterval(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nFunctionTestInterval := TO_BYTE(nFunctionTestInterval));
+	IF (NOT fb202SetFunctionTestInterval.bBusy) THEN
+		fb202SetFunctionTestInterval (bStart := FALSE);
+		nStep := 560;
+	END_IF
+{endregion}
+560:
+{region "Set Test Execution Timeout"}
+	fb202SetTestExecutionTimeout(	bStart := TRUE,
+									nAddress := nAddress,
+									eAddressType := Tc3_DALI.E_DALIAddressType.Short,
+									eCommandPriority := Tc3_DALI.E_DALICommandPriority.Middle,
+									nTestExecutionTimeout := TO_BYTE(nTestExecutionTimeout));
+	IF (NOT fb202SetTestExecutionTimeout.bBusy) THEN
+		fb202SetTestExecutionTimeout (bStart := FALSE);
+		nStep := 0;
+	END_IF
+{endregion}
+{endregion}
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_Part202Emergency">
+      <LineId Id="29" Count="0" />
+      <LineId Id="205" Count="2" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="239" Count="2" />
+      <LineId Id="229" Count="1" />
+      <LineId Id="242" Count="2" />
+      <LineId Id="231" Count="1" />
+      <LineId Id="245" Count="2" />
+      <LineId Id="233" Count="1" />
+      <LineId Id="248" Count="2" />
+      <LineId Id="235" Count="1" />
+      <LineId Id="251" Count="2" />
+      <LineId Id="237" Count="1" />
+      <LineId Id="254" Count="2" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="257" Count="2" />
+      <LineId Id="226" Count="1" />
+      <LineId Id="265" Count="2" />
+      <LineId Id="260" Count="1" />
+      <LineId Id="268" Count="2" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="220" Count="3" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="190" Count="0" />
+      <LineId Id="192" Count="3" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="196" Count="0" />
+      <LineId Id="198" Count="3" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="36" Count="17" />
+      <LineId Id="187" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="55" Count="3" />
+      <LineId Id="1489" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="1490" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="434" Count="0" />
+      <LineId Id="484" Count="0" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="550" Count="0" />
+      <LineId Id="107" Count="5" />
+      <LineId Id="115" Count="5" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="289" Count="8" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="271" Count="1" />
+      <LineId Id="307" Count="1" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="311" Count="2" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="314" Count="0" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="335" Count="6" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="342" Count="6" />
+      <LineId Id="318" Count="1" />
+      <LineId Id="349" Count="6" />
+      <LineId Id="320" Count="1" />
+      <LineId Id="356" Count="6" />
+      <LineId Id="324" Count="1" />
+      <LineId Id="363" Count="6" />
+      <LineId Id="326" Count="1" />
+      <LineId Id="370" Count="6" />
+      <LineId Id="328" Count="1" />
+      <LineId Id="1790" Count="6" />
+      <LineId Id="1789" Count="0" />
+      <LineId Id="322" Count="0" />
+      <LineId Id="1782" Count="6" />
+      <LineId Id="1780" Count="0" />
+      <LineId Id="331" Count="0" />
+      <LineId Id="391" Count="6" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="64" Count="10" />
+      <LineId Id="1614" Count="0" />
+      <LineId Id="1609" Count="0" />
+      <LineId Id="399" Count="0" />
+      <LineId Id="403" Count="0" />
+      <LineId Id="408" Count="1" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="410" Count="1" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="417" Count="0" />
+      <LineId Id="419" Count="9" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="442" Count="9" />
+      <LineId Id="439" Count="0" />
+      <LineId Id="438" Count="0" />
+      <LineId Id="454" Count="9" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="465" Count="0" />
+      <LineId Id="1626" Count="0" />
+      <LineId Id="1632" Count="0" />
+      <LineId Id="1636" Count="3" />
+      <LineId Id="1641" Count="0" />
+      <LineId Id="1640" Count="0" />
+      <LineId Id="1628" Count="0" />
+      <LineId Id="466" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="467" Count="0" />
+      <LineId Id="469" Count="0" />
+      <LineId Id="488" Count="0" />
+      <LineId Id="493" Count="1" />
+      <LineId Id="492" Count="0" />
+      <LineId Id="499" Count="2" />
+      <LineId Id="504" Count="6" />
+      <LineId Id="502" Count="0" />
+      <LineId Id="496" Count="0" />
+      <LineId Id="482" Count="0" />
+      <LineId Id="470" Count="0" />
+      <LineId Id="519" Count="16" />
+      <LineId Id="518" Count="0" />
+      <LineId Id="471" Count="0" />
+      <LineId Id="551" Count="13" />
+      <LineId Id="566" Count="1" />
+      <LineId Id="548" Count="0" />
+      <LineId Id="468" Count="0" />
+      <LineId Id="578" Count="1" />
+      <LineId Id="1654" Count="7" />
+      <LineId Id="1653" Count="0" />
+      <LineId Id="1652" Count="0" />
+      <LineId Id="599" Count="0" />
+      <LineId Id="589" Count="0" />
+      <LineId Id="594" Count="1" />
+      <LineId Id="593" Count="0" />
+      <LineId Id="580" Count="0" />
+      <LineId Id="596" Count="0" />
+      <LineId Id="953" Count="0" />
+      <LineId Id="598" Count="0" />
+      <LineId Id="597" Count="0" />
+      <LineId Id="581" Count="1" />
+      <LineId Id="600" Count="0" />
+      <LineId Id="748" Count="0" />
+      <LineId Id="753" Count="1" />
+      <LineId Id="752" Count="0" />
+      <LineId Id="755" Count="1" />
+      <LineId Id="954" Count="0" />
+      <LineId Id="757" Count="0" />
+      <LineId Id="608" Count="0" />
+      <LineId Id="602" Count="0" />
+      <LineId Id="601" Count="0" />
+      <LineId Id="603" Count="0" />
+      <LineId Id="758" Count="3" />
+      <LineId Id="763" Count="1" />
+      <LineId Id="956" Count="0" />
+      <LineId Id="765" Count="0" />
+      <LineId Id="609" Count="0" />
+      <LineId Id="605" Count="0" />
+      <LineId Id="604" Count="0" />
+      <LineId Id="606" Count="0" />
+      <LineId Id="614" Count="0" />
+      <LineId Id="620" Count="1" />
+      <LineId Id="618" Count="1" />
+      <LineId Id="623" Count="1" />
+      <LineId Id="1078" Count="0" />
+      <LineId Id="625" Count="0" />
+      <LineId Id="622" Count="0" />
+      <LineId Id="583" Count="0" />
+      <LineId Id="626" Count="0" />
+      <LineId Id="633" Count="0" />
+      <LineId Id="635" Count="4" />
+      <LineId Id="641" Count="1" />
+      <LineId Id="1927" Count="0" />
+      <LineId Id="1803" Count="0" />
+      <LineId Id="1081" Count="0" />
+      <LineId Id="634" Count="0" />
+      <LineId Id="632" Count="0" />
+      <LineId Id="627" Count="0" />
+      <LineId Id="645" Count="5" />
+      <LineId Id="652" Count="1" />
+      <LineId Id="1928" Count="1" />
+      <LineId Id="654" Count="1" />
+      <LineId Id="644" Count="0" />
+      <LineId Id="628" Count="0" />
+      <LineId Id="657" Count="5" />
+      <LineId Id="664" Count="1" />
+      <LineId Id="1086" Count="0" />
+      <LineId Id="666" Count="1" />
+      <LineId Id="656" Count="0" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="669" Count="5" />
+      <LineId Id="676" Count="1" />
+      <LineId Id="1087" Count="0" />
+      <LineId Id="678" Count="1" />
+      <LineId Id="668" Count="0" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="681" Count="5" />
+      <LineId Id="688" Count="1" />
+      <LineId Id="1089" Count="0" />
+      <LineId Id="690" Count="1" />
+      <LineId Id="680" Count="0" />
+      <LineId Id="631" Count="0" />
+      <LineId Id="693" Count="0" />
+      <LineId Id="707" Count="0" />
+      <LineId Id="713" Count="1" />
+      <LineId Id="711" Count="0" />
+      <LineId Id="700" Count="1" />
+      <LineId Id="1091" Count="0" />
+      <LineId Id="702" Count="1" />
+      <LineId Id="692" Count="0" />
+      <LineId Id="715" Count="1" />
+      <LineId Id="718" Count="3" />
+      <LineId Id="723" Count="1" />
+      <LineId Id="726" Count="0" />
+      <LineId Id="736" Count="2" />
+      <LineId Id="740" Count="2" />
+      <LineId Id="739" Count="0" />
+      <LineId Id="725" Count="0" />
+      <LineId Id="717" Count="0" />
+      <LineId Id="584" Count="0" />
+      <LineId Id="1642" Count="0" />
+      <LineId Id="1644" Count="7" />
+      <LineId Id="1643" Count="0" />
+      <LineId Id="577" Count="0" />
+      <LineId Id="744" Count="0" />
+      <LineId Id="767" Count="1" />
+      <LineId Id="798" Count="0" />
+      <LineId Id="803" Count="1" />
+      <LineId Id="802" Count="0" />
+      <LineId Id="1092" Count="0" />
+      <LineId Id="806" Count="0" />
+      <LineId Id="965" Count="0" />
+      <LineId Id="970" Count="0" />
+      <LineId Id="805" Count="0" />
+      <LineId Id="771" Count="0" />
+      <LineId Id="780" Count="1" />
+      <LineId Id="809" Count="7" />
+      <LineId Id="782" Count="0" />
+      <LineId Id="772" Count="0" />
+      <LineId Id="1439" Count="1" />
+      <LineId Id="1930" Count="0" />
+      <LineId Id="1441" Count="18" />
+      <LineId Id="1372" Count="0" />
+      <LineId Id="1469" Count="0" />
+      <LineId Id="1923" Count="0" />
+      <LineId Id="1470" Count="18" />
+      <LineId Id="1373" Count="0" />
+      <LineId Id="792" Count="1" />
+      <LineId Id="841" Count="6" />
+      <LineId Id="962" Count="0" />
+      <LineId Id="794" Count="0" />
+      <LineId Id="776" Count="0" />
+      <LineId Id="769" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

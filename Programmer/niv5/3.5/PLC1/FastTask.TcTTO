@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <Task Name="FastTask" Id="{7182fb57-191a-426f-99e8-dd6aad1bb248}">
+    <!--CycleTime in micro seconds.-->
+    <CycleTime>4000</CycleTime>
+    <Priority>20</Priority>
+    <PouCall>
+      <Name>P_DALI_Background</Name>
+    </PouCall>
+    <PouCall>
+      <Name>P_EnOcean</Name>
+    </PouCall>
+    <TaskFBGuid>{c9c3f202-b193-41bd-bbbe-b8d89962ec78}</TaskFBGuid>
+    <Fb_init>{4b794152-81a0-4ea5-9ca3-15fbe355c400}</Fb_init>
+    <Fb_exit>{3baa1f5b-be2c-430a-bd22-d24c0c106357}</Fb_exit>
+    <CycleUpdate>{bfdf8445-c8a1-4470-96f3-fc3d4790539b}</CycleUpdate>
+    <PostCycleUpdate>{e5d819d3-84cb-4b8f-bd80-b19ea3327dcf}</PostCycleUpdate>
+  </Task>
+</TcPlcObject>

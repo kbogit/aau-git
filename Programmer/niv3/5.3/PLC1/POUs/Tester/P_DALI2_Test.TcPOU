@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="P_DALI2_Test" Id="{3db5867d-1fd4-40c6-a0d5-1e3c9d8d57cb}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM P_DALI2_Test
+VAR
+	fbStarCount: FB_DALI253QueryControlGearStartCounter(0);
+	bStart: BOOL;
+	nAddress: BYTE := 10;
+	eAddressType: Tc3_DALI.E_DALIAddressType := Tc3_DALI.E_DALIAddressType.Short;
+	eCommandPriority: Tc3_DALI.E_DALICommandPriority := Tc3_DALI.E_DALICommandPriority.Middle;
+	nControlGearStartCounter: UDINT;
+END_VAR
+
+VAR CONSTANT
+	DALI_LINE_NUM: INT := 1;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbStarCount.ipDALICommunication := P_DALI_Background.arrfbKL6821Communication[DALI_LINE_NUM];
+
+
+fbStarCount(
+	bError=> , 
+	ipResultMessage=> , 
+	bStart:= bStart, 
+	nAddress:= nAddress, 
+	eAddressType:= eAddressType, 
+	eCommandPriority:=eCommandPriority , 
+	bBusy=> , 
+	nControlGearStartCounter=> nControlGearStartCounter);
+	]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
