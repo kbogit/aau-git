@@ -1,2 +1,85 @@
-*.sln
+# -------------------------------
+# TwinCAT 3 Git Ignore Template
+# -------------------------------
+
+# === Build & output folders ===
+Bin/
+Obj/
+Boot/
+Plc/Temp/
+TcBuild/
+
+# === Temporary and cache files ===
+*.log
+*.tmp
 *.bak
+*.cache
+*.db
+*.db-shm
+*.db-wal
+
+# === Visual Studio user files ===
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vs/
+.vscode/
+
+# === TwinCAT auto-generated ===
+*.tco
+*.tpy
+*.tmc
+
+# === Ignore TwinCAT backup/config history ===
+*.bak
+*.Backup/
+*.Old/
+Backup/
+Archives/
+
+# === Ignore local TwinCAT settings ===
+*.xti
+*.xtw
+*.xti.user
+*.xtw.user
+*.tclrs
+
+# === Ignore deployment and runtime data ===
+*.bootinfo
+*.tsproj.bak
+TwinCAT3/Targets/
+TwinCAT3/Instances/
+
+# === Ignore system-specific ===
+Thumbs.db
+Desktop.ini
+
+# === Optional: keep only one of these ===
+# Include project files for compile context
+!*.tsproj
+!*.tcsmproj
+!*.tcmproj
+!*.tcbproj
+!*.sln
+
+# Keep source files
+!**/*.TcPOU
+!**/*.TcDUT
+!**/*.TcGVL
+!**/*.TcIO
+!**/*.TcVIS
+!**/*.TcTcPlcObj
+!**/*.TcTcPlcLib
+!**/*.TcTcPlcApp
+
+# Keep configuration and parameter files
+!**/*.xml
+!**/*.json
+!**/*.xaml
+!**/*.config
+
+# Keep your TwinCAT system configuration
+!**/*.tsm
+!**/*.xti
+!**/*.xti.config
